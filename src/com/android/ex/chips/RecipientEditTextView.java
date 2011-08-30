@@ -1403,7 +1403,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             editable.append(text);
             setCursorVisible(true);
             setSelection(editable.length());
-            return new RecipientChip(null, RecipientEntry.constructFakeEntry((String) text), -1);
+            return null;
         } else if (currentChip.getContactId() == RecipientEntry.GENERATED_CONTACT) {
             int start = getChipStart(currentChip);
             int end = getChipEnd(currentChip);
@@ -1492,7 +1492,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         Editable editable = getText();
         mSelectedChip = null;
         if (start == -1 || end == -1) {
-            Log.e(TAG, "The chip being unselected no longer exists.");
+            Log.e(TAG, "The chip being unselected no longer exists but should.");
         } else {
             getSpannable().removeSpan(chip);
             QwertyKeyListener.markAsReplaced(editable, start, end, "");
