@@ -33,7 +33,6 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Parcelable;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.Layout;
@@ -258,15 +257,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             }
         }
         super.onSelectionChanged(start, end);
-    }
-
-    @Override
-    public void onRestoreInstanceState(Parcelable state) {
-        if (!TextUtils.isEmpty(getText())) {
-            super.onRestoreInstanceState(null);
-        } else {
-            super.onRestoreInstanceState(state);
-        }
     }
 
     /**
@@ -619,6 +609,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             return;
         }
         synchronized (mPendingChips) {
+            mTemporaryRecipients = new ArrayList<RecipientChip>(mPendingChipsCount);
             Editable editable = getText();
             // Tokenize!
             for (int i = 0; i < mPendingChips.size(); i++) {
@@ -637,7 +628,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 mPendingChipsCount--;
             }
             sanitizeSpannable();
-            if (mTemporaryRecipients != null && mTemporaryRecipients.size() > 0
+            if (mTemporaryRecipients != null
                     && mTemporaryRecipients.size() <= RecipientAlternatesAdapter.MAX_LOOKUPS) {
                 if (hasFocus() || mTemporaryRecipients.size() < CHIP_LIMIT) {
                     new RecipientReplacementTask().execute();
@@ -652,7 +643,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 }
             } else {
                 // There are too many recipients to look up, so just fall back
-                // to showing addresses for all of them.
+                // to
+                // showing addresses for all of them.
                 mTemporaryRecipients = null;
                 createMoreChip();
             }
@@ -670,7 +662,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         if (chips != null && chips.length > 0) {
             int end;
             ImageSpan lastSpan;
-            mMoreChip = getMoreChip();
             if (mMoreChip != null) {
                 lastSpan = mMoreChip;
             } else {
@@ -721,12 +712,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             } catch (NullPointerException e) {
                 Log.e(TAG, e.getMessage(), e);
             }
+
             editable.replace(tokenStart, tokenEnd, chipText);
             // Add this chip to the list of entries "to replace"
             if (chip != null) {
-                if (mTemporaryRecipients == null) {
-                    mTemporaryRecipients = new ArrayList<RecipientChip>();
-                }
                 chip.setOriginalText(chipText.toString());
                 mTemporaryRecipients.add(chip);
             }
@@ -1319,13 +1308,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return false;
     }
 
-
-    private ImageSpan getMoreChip() {
-        MoreImageSpan[] moreSpans = getSpannable().getSpans(0, getText().length(),
-                MoreImageSpan.class);
-        return moreSpans != null && moreSpans.length > 0 ? moreSpans[0] : null;
-    }
-
     /**
      * Create the more chip. The more chip is text that replaces any chips that
      * do not fit in the pre-defined available space when the
@@ -1357,12 +1339,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         int height = getLineHeight();
         Bitmap drawable = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(drawable);
-        int adjustedHeight = height;
-        Layout layout = getLayout();
-        if (layout != null) {
-            adjustedHeight -= layout.getLineDescent(0);
-        }
-        canvas.drawText(moreText, 0, moreText.length(), 0, adjustedHeight, morePaint);
+        canvas.drawText(moreText, 0, moreText.length(), 0, height - getLayout().getLineDescent(0),
+                morePaint);
 
         Drawable result = new BitmapDrawable(getResources(), drawable);
         result.setBounds(0, 0, width, height);
@@ -1750,7 +1728,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            // Do nothing.
         }
     }
 
