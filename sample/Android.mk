@@ -25,7 +25,7 @@ include $(CLEAR_VARS)
 src_dirs := src
 LOCAL_PACKAGE_NAME := ChipsSample
 
-LOCAL_STATIC_JAVA_LIBRARIES += android-common-chips
+LOCAL_STATIC_JAVA_LIBRARIES += libchips
 
 LOCAL_SDK_VERSION := 18
 
