@@ -23,7 +23,7 @@ res_dirs := res $(chips_dir)
 include $(CLEAR_VARS)
 
 src_dirs := src
-LOCAL_PACKAGE_NAME := ChipsSample
+LOCAL_PACKAGE_NAME := libChipsSample
 
 LOCAL_STATIC_JAVA_LIBRARIES += libchips
 
