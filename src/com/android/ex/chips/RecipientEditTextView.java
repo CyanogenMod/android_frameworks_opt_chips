@@ -1290,8 +1290,12 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         ListAdapter adapter = getAdapter();
         if (adapter != null && adapter.getCount() > 0 && enoughToFilter()
                 && end == getSelectionEnd() && !isPhoneQuery()) {
-            // choose the first entry.
-            submitItemAtPosition(0);
+            // let's choose the first entry if only the input text is NOT an email address
+            // so we won't try to replace the user's potentially correct but new/unencountered
+            // email input
+            if (!isValidEmailAddress(editable.toString().substring(start, end).trim())) {
+                submitItemAtPosition(0);
+            }
             dismissDropDown();
             return true;
         } else {
@@ -2310,6 +2314,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         super.removeTextChangedListener(watcher);
     }
 
+    private boolean isValidEmailAddress(String input) {
+        return !TextUtils.isEmpty(input) && mValidator != null &&
+                mValidator.isValid(input);
+    }
+
     private class RecipientTextWatcher implements TextWatcher {
 
         @Override
@@ -2369,8 +2378,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                         int tokenStart = mTokenizer.findTokenStart(text, getSelectionEnd());
                         String sub = text.substring(tokenStart, mTokenizer.findTokenEnd(text,
                                 tokenStart));
-                        if (!TextUtils.isEmpty(sub) && mValidator != null &&
-                                mValidator.isValid(sub)) {
+                        if (isValidEmailAddress(sub)) {
                             commitByCharacter();
                         }
                     }
