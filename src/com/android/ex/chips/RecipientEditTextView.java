@@ -121,7 +121,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     private static final String TAG = "RecipientEditTextView";
 
-    private static int DISMISS = "dismiss".hashCode();
+    private static final int DISMISS = "dismiss".hashCode();
 
     private static final long DISMISS_DELAY = 300;
 
