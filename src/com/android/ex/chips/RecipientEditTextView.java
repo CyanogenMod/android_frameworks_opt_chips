@@ -1244,9 +1244,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     /**
      * Create a chip from the default selection. If the popup is showing, the
-     * default is the first item in the popup suggestions list. Otherwise, it is
-     * whatever the user had typed in. End represents where the the tokenizer
-     * should search for a token to turn into a chip.
+     * default is the selected item (if one is selected), or the first item, in the popup
+     * suggestions list. Otherwise, it is whatever the user had typed in. End represents where the
+     * tokenizer should search for a token to turn into a chip.
      * @return If a chip was created from a real contact.
      */
     private boolean commitDefault() {
@@ -1290,11 +1290,17 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         ListAdapter adapter = getAdapter();
         if (adapter != null && adapter.getCount() > 0 && enoughToFilter()
                 && end == getSelectionEnd() && !isPhoneQuery()) {
-            // let's choose the first entry if only the input text is NOT an email address
-            // so we won't try to replace the user's potentially correct but new/unencountered
-            // email input
+            // let's choose the selected or first entry if only the input text is NOT an email
+            // address so we won't try to replace the user's potentially correct but
+            // new/unencountered email input
             if (!isValidEmailAddress(editable.toString().substring(start, end).trim())) {
-                submitItemAtPosition(0);
+                final int selectedPosition = getListSelection();
+                if (selectedPosition == -1) {
+                    // Nothing is selected; use the first item
+                    submitItemAtPosition(0);
+                } else {
+                    submitItemAtPosition(selectedPosition);
+                }
             }
             dismissDropDown();
             return true;
