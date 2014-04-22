@@ -51,6 +51,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -334,8 +335,9 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
                             defaultFilterResult.existingDestinations.size();
                     startSearchOtherDirectories(constraint, defaultFilterResult.paramsList, limit);
                 }
+            } else {
+                updateEntries(Collections.<RecipientEntry>emptyList());
             }
-
         }
 
         @Override
