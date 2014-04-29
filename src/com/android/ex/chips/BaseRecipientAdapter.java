@@ -36,7 +36,6 @@ import android.support.v4.util.LruCache;
 import android.text.TextUtils;
 import android.text.util.Rfc822Token;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
@@ -98,7 +97,7 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
     public static final int QUERY_TYPE_EMAIL = 0;
     public static final int QUERY_TYPE_PHONE = 1;
 
-    private final Queries.Query mQuery;
+    private final Queries.Query mQueryMode;
     private final int mQueryType;
 
     /**
@@ -464,7 +463,6 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
 
     private final Context mContext;
     private final ContentResolver mContentResolver;
-    private final LayoutInflater mInflater;
     private Account mAccount;
     private final int mPreferredMaxResultCount;
     private DropdownChipLayouter mDropdownChipLayouter;
@@ -555,17 +553,16 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
     public BaseRecipientAdapter(Context context, int preferredMaxResultCount, int queryMode) {
         mContext = context;
         mContentResolver = context.getContentResolver();
-        mInflater = LayoutInflater.from(context);
         mPreferredMaxResultCount = preferredMaxResultCount;
         mPhotoCacheMap = new LruCache<Uri, byte[]>(PHOTO_CACHE_SIZE);
         mQueryType = queryMode;
 
         if (queryMode == QUERY_TYPE_EMAIL) {
-            mQuery = Queries.EMAIL;
+            mQueryMode = Queries.EMAIL;
         } else if (queryMode == QUERY_TYPE_PHONE) {
-            mQuery = Queries.PHONE;
+            mQueryMode = Queries.PHONE;
         } else {
-            mQuery = Queries.EMAIL;
+            mQueryMode = Queries.EMAIL;
             Log.e(TAG, "Unsupported query type: " + queryMode);
         }
     }
@@ -580,7 +577,7 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
 
     public void setDropdownChipLayouter(DropdownChipLayouter dropdownChipLayouter) {
         mDropdownChipLayouter = dropdownChipLayouter;
-        mDropdownChipLayouter.setQuery(mQuery);
+        mDropdownChipLayouter.setQuery(mQueryMode);
     }
 
     public DropdownChipLayouter getDropdownChipLayouter() {
@@ -925,7 +922,7 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
     }
 
     private Cursor doQuery(CharSequence constraint, int limit, Long directoryId) {
-        final Uri.Builder builder = mQuery.getContentFilterUri().buildUpon()
+        final Uri.Builder builder = mQueryMode.getContentFilterUri().buildUpon()
                 .appendPath(constraint.toString())
                 .appendQueryParameter(ContactsContract.LIMIT_PARAM_KEY,
                         String.valueOf(limit + ALLOWANCE_FOR_DUPLICATES));
@@ -939,7 +936,7 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
         }
         final long start = System.currentTimeMillis();
         final Cursor cursor = mContentResolver.query(
-                builder.build(), mQuery.getProjection(), null, null, null);
+                builder.build(), mQueryMode.getProjection(), null, null, null);
         final long end = System.currentTimeMillis();
         if (DEBUG) {
             Log.d(TAG, "Time for autocomplete (query: " + constraint
