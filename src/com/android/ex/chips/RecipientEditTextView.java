@@ -604,9 +604,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * @param contact The recipient entry to pull data from.
      * @param paint The paint to use to draw the bitmap.
      */
-    // TODO: Is leaveBlankIconSpacer obsolete now that we have left and right attributes?
-    private Bitmap createUnselectedChip(RecipientEntry contact, TextPaint paint,
-            boolean leaveBlankIconSpacer) {
+    private Bitmap createUnselectedChip(RecipientEntry contact, TextPaint paint) {
         Drawable background = getChipBackground(contact);
         Bitmap photo = getAvatarIcon(contact);
         paint.setColor(getContext().getResources().getColor(android.R.color.black));
@@ -745,8 +743,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         canvas.drawBitmap(icon, matrix, paint);
     }
 
-    private DrawableRecipientChip constructChipSpan(RecipientEntry contact, boolean pressed,
-            boolean leaveIconSpace) throws NullPointerException {
+    private DrawableRecipientChip constructChipSpan(RecipientEntry contact, boolean pressed)
+            throws NullPointerException {
         if (mChipBackground == null) {
             throw new NullPointerException(
                     "Unable to render any chips as setChipDimensions was not called.");
@@ -761,7 +759,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             tmpBitmap = createSelectedChip(contact, paint);
 
         } else {
-            tmpBitmap = createUnselectedChip(contact, paint, leaveIconSpace);
+            tmpBitmap = createUnselectedChip(contact, paint);
         }
 
         // Pass the full text, un-ellipsized, to the chip.
@@ -1068,16 +1066,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             DrawableRecipientChip chip = null;
             try {
                 if (!mNoChips) {
-                    /*
-                     * leave space for the contact icon if this is not just an
-                     * email address
-                     */
-                    boolean leaveSpace = TextUtils.isEmpty(entry.getDisplayName())
-                            || TextUtils.equals(entry.getDisplayName(),
-                                    entry.getDestination());
                     chip = visible ?
-                            constructChipSpan(entry, false, leaveSpace)
-                            : new InvisibleRecipientChip(entry);
+                            constructChipSpan(entry, false) : new InvisibleRecipientChip(entry);
                 }
             } catch (NullPointerException e) {
                 Log.e(TAG, e.getMessage(), e);
@@ -1749,8 +1739,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         chipText = new SpannableString(displayText);
         if (!mNoChips) {
             try {
-                DrawableRecipientChip chip = constructChipSpan(entry, pressed,
-                        false /* leave space for contact icon */);
+                DrawableRecipientChip chip = constructChipSpan(entry, pressed);
                 chipText.setSpan(chip, 0, textLength,
                         Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 chip.setOriginalText(chipText.toString());
@@ -2084,7 +2073,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             editable.append(text);
             return constructChipSpan(
                     RecipientEntry.constructFakeEntry((String) text, isValid(text.toString())),
-                    true, false);
+                    true);
         } else if (currentChip.getContactId() == RecipientEntry.GENERATED_CONTACT) {
             int start = getChipStart(currentChip);
             int end = getChipEnd(currentChip);
@@ -2094,7 +2083,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 if (mNoChips) {
                     return null;
                 }
-                newChip = constructChipSpan(currentChip.getEntry(), true, false);
+                newChip = constructChipSpan(currentChip.getEntry(), true);
             } catch (NullPointerException e) {
                 Log.e(TAG, e.getMessage(), e);
                 return null;
@@ -2119,7 +2108,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             getSpannable().removeSpan(currentChip);
             DrawableRecipientChip newChip;
             try {
-                newChip = constructChipSpan(currentChip.getEntry(), true, false);
+                newChip = constructChipSpan(currentChip.getEntry(), true);
             } catch (NullPointerException e) {
                 Log.e(TAG, e.getMessage(), e);
                 return null;
@@ -2193,7 +2182,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             editable.removeSpan(chip);
             try {
                 if (!mNoChips) {
-                    editable.setSpan(constructChipSpan(chip.getEntry(), false, false),
+                    editable.setSpan(constructChipSpan(chip.getEntry(), false),
                             start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 }
             } catch (NullPointerException e) {
@@ -2570,8 +2559,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 if (mNoChips) {
                     return null;
                 }
-                return constructChipSpan(entry, false,
-                        false /*leave space for contact icon */);
+                return constructChipSpan(entry, false);
             } catch (NullPointerException e) {
                 Log.e(TAG, e.getMessage(), e);
                 return null;
@@ -2914,7 +2902,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     }
 
     /**
-     * Drag shadow for a {@link RecipientChip}.
+     * Drag shadow for a {@link DrawableRecipientChip}.
      */
     private final class RecipientChipShadow extends DragShadowBuilder {
         private final DrawableRecipientChip mChip;
