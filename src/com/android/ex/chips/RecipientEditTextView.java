@@ -381,6 +381,24 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return last;
     }
 
+    /**
+     * @return The list of {@link RecipientEntry}s that have been selected by the user.
+     */
+    public List<RecipientEntry> getSelectedRecipients() {
+        DrawableRecipientChip[] chips =
+                getText().getSpans(0, getText().length(), DrawableRecipientChip.class);
+        List<RecipientEntry> results = new ArrayList();
+        if (chips == null) {
+            return results;
+        }
+
+        for (DrawableRecipientChip c : chips) {
+            results.add(c.getEntry());
+        }
+
+        return results;
+    }
+
     @Override
     public void onSelectionChanged(int start, int end) {
         // When selection changes, see if it is inside the chips area.
