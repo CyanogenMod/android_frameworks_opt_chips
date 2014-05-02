@@ -91,10 +91,8 @@ import com.android.ex.chips.recipientchip.VisibleRecipientChip;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -321,7 +319,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         setDropdownChipLayouter(new DropdownChipLayouter(LayoutInflater.from(context), context));
     }
 
-    protected void setDropdownChipLayouter(DropdownChipLayouter dropdownChipLayouter) {
+    public void setDropdownChipLayouter(DropdownChipLayouter dropdownChipLayouter) {
         mDropdownChipLayouter = dropdownChipLayouter;
     }
 
@@ -717,7 +715,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             byte[] photoBytes = contact.getPhotoBytes();
             // There may not be a photo yet if anything but the first contact address
             // was selected.
-            if (photoBytes == null && contact.getPhotoThumbnailUri() != null) {
+            if (photoBytes == null && (contact.getPhotoThumbnailUri() != null ||
+                    getAdapter().ignoreNullThumbnailUri())) {
                 // TODO: cache this in the recipient entry?
                 getAdapter().fetchPhoto(contact, contact.getPhotoThumbnailUri());
                 photoBytes = contact.getPhotoBytes();
@@ -1823,31 +1822,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return entry;
     }
 
-    /** Returns a collection of contact Id for each chip inside this View. */
-    /* package */ Collection<Long> getContactIds() {
-        final Set<Long> result = new HashSet<Long>();
-        DrawableRecipientChip[] chips = getSortedRecipients();
-        if (chips != null) {
-            for (DrawableRecipientChip chip : chips) {
-                result.add(chip.getContactId());
-            }
-        }
-        return result;
-    }
-
-
-    /** Returns a collection of data Id for each chip inside this View. May be null. */
-    /* package */ Collection<Long> getDataIds() {
-        final Set<Long> result = new HashSet<Long>();
-        DrawableRecipientChip [] chips = getSortedRecipients();
-        if (chips != null) {
-            for (DrawableRecipientChip chip : chips) {
-                result.add(chip.getDataId());
-            }
-        }
-        return result;
-    }
-
     // Visible for testing.
     /* package */DrawableRecipientChip[] getSortedRecipients() {
         DrawableRecipientChip[] recips = getSpannable()
@@ -2092,13 +2066,16 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             return constructChipSpan(
                     RecipientEntry.constructFakeEntry((String) text, isValid(text.toString())),
                     true);
-        } else if (currentChip.getContactId() == RecipientEntry.GENERATED_CONTACT) {
+        } else {
             int start = getChipStart(currentChip);
             int end = getChipEnd(currentChip);
             getSpannable().removeSpan(currentChip);
             DrawableRecipientChip newChip;
+            final boolean showAddress =
+                    currentChip.getContactId() == RecipientEntry.GENERATED_CONTACT ||
+                    getAdapter().forceShowAddress();
             try {
-                if (mNoChips) {
+                if (showAddress && mNoChips) {
                     return null;
                 }
                 newChip = constructChipSpan(currentChip.getEntry(), true);
@@ -2117,32 +2094,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             if (shouldShowEditableText(newChip)) {
                 scrollLineIntoView(getLayout().getLineForOffset(getChipStart(newChip)));
             }
-            showAddress(newChip, mAddressPopup, getWidth());
-            setCursorVisible(false);
-            return newChip;
-        } else {
-            int start = getChipStart(currentChip);
-            int end = getChipEnd(currentChip);
-            getSpannable().removeSpan(currentChip);
-            DrawableRecipientChip newChip;
-            try {
-                newChip = constructChipSpan(currentChip.getEntry(), true);
-            } catch (NullPointerException e) {
-                Log.e(TAG, e.getMessage(), e);
-                return null;
-            }
-            Editable editable = getText();
-            QwertyKeyListener.markAsReplaced(editable, start, end, "");
-            if (start == -1 || end == -1) {
-                Log.d(TAG, "The chip being selected no longer exists but should.");
+            if (showAddress) {
+                showAddress(newChip, mAddressPopup, getWidth());
             } else {
-                editable.setSpan(newChip, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                showAlternates(newChip, mAlternatesPopup, getWidth());
             }
-            newChip.setSelected(true);
-            if (shouldShowEditableText(newChip)) {
-                scrollLineIntoView(getLayout().getLineForOffset(getChipStart(newChip)));
-            }
-            showAlternates(newChip, mAlternatesPopup, getWidth());
             setCursorVisible(false);
             return newChip;
         }
@@ -2639,8 +2595,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 }
             }
             final BaseRecipientAdapter adapter = getAdapter();
-            RecipientAlternatesAdapter.getMatchingRecipients(getContext(), adapter, addresses,
-                    adapter.getAccount(), new RecipientMatchCallback() {
+            adapter.getMatchingRecipients(addresses, new RecipientMatchCallback() {
                         @Override
                         public void matchesFound(Map<String, RecipientEntry> entries) {
                             final ArrayList<DrawableRecipientChip> replacements =
@@ -2767,9 +2722,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 }
             }
             final BaseRecipientAdapter adapter = getAdapter();
-            RecipientAlternatesAdapter.getMatchingRecipients(getContext(), adapter, addresses,
-                    adapter.getAccount(),
-                    new RecipientMatchCallback() {
+            adapter.getMatchingRecipients(addresses, new RecipientMatchCallback() {
 
                         @Override
                         public void matchesFound(Map<String, RecipientEntry> entries) {
