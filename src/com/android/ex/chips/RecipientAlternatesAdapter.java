@@ -49,7 +49,7 @@ import java.util.Set;
  * queried by email or by phone number.
  */
 public class RecipientAlternatesAdapter extends CursorAdapter {
-    static final int MAX_LOOKUPS = 50;
+    public static final int MAX_LOOKUPS = 50;
 
     private final long mCurrentId;
 
@@ -87,7 +87,6 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
      * @param context Context.
      * @param inAddresses Array of addresses on which to perform the lookup.
      * @param callback RecipientMatchCallback called when a match or matches are found.
-     * @return HashMap<String,RecipientEntry>
      */
     public static void getMatchingRecipients(Context context, BaseRecipientAdapter adapter,
             ArrayList<String> inAddresses, int addressType, Account account,
@@ -133,9 +132,31 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
                 c.close();
             }
         }
+
+        final Set<String> matchesNotFound = new HashSet<String>();
+
+        getMatchingRecipientsFromDirectoryQueries(context, recipientEntries,
+                addresses, account, matchesNotFound, query, callback);
+
+        getMatchingRecipientsFromExtensionMatcher(adapter, matchesNotFound, callback);
+    }
+
+    public static void getMatchingRecipientsFromDirectoryQueries(Context context,
+            Map<String, RecipientEntry> recipientEntries, Set<String> addresses,
+            Account account, Set<String> matchesNotFound,
+            RecipientMatchCallback callback) {
+        getMatchingRecipientsFromDirectoryQueries(
+                context, recipientEntries, addresses, account,
+                matchesNotFound, Queries.EMAIL, callback);
+    }
+
+    private static void getMatchingRecipientsFromDirectoryQueries(Context context,
+            Map<String, RecipientEntry> recipientEntries, Set<String> addresses,
+            Account account, Set<String> matchesNotFound, Queries.Query query,
+            RecipientMatchCallback callback) {
         // See if any entries did not resolve; if so, we need to check other
         // directories
-        final Set<String> matchesNotFound = new HashSet<String>();
+
         if (recipientEntries.size() < addresses.size()) {
             final List<DirectorySearchParams> paramsList;
             Cursor directoryCursor = null;
@@ -200,7 +221,10 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
                 }
             }
         }
+    }
 
+    public static void getMatchingRecipientsFromExtensionMatcher(BaseRecipientAdapter adapter,
+            Set<String> matchesNotFound, RecipientMatchCallback callback) {
         // If no matches found in contact provider or the directories, try the extension
         // matcher.
         // todo (aalbert): This whole method needs to be in the adapter?
