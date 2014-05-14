@@ -278,6 +278,18 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     private DropdownChipLayouter mDropdownChipLayouter;
 
+    private RecipientEntryItemClickedListener mRecipientEntryItemClickedListener;
+
+    public interface RecipientEntryItemClickedListener {
+        /**
+         * Callback that occurs whenever an auto-complete suggestion is clicked.
+         * @param charactersTyped the number of characters typed by the user to provide the
+         *                        auto-complete suggestions.
+         * @param position the position in the dropdown list that the user clicked
+         */
+        void onRecipientEntryItemClicked(int charactersTyped, int position);
+    }
+
     public RecipientEditTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setChipDimensions(context, attrs);
@@ -323,6 +335,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     protected void setDropdownChipLayouter(DropdownChipLayouter dropdownChipLayouter) {
         mDropdownChipLayouter = dropdownChipLayouter;
+    }
+
+    public void setRecipientEntryItemClickedListener(RecipientEntryItemClickedListener listener) {
+        mRecipientEntryItemClickedListener = listener;
     }
 
     @Override
@@ -1778,13 +1794,18 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         if (position < 0) {
             return;
         }
-        submitItemAtPosition(position);
+
+        final int charactersTyped = submitItemAtPosition(position);
+        if (charactersTyped > -1 && mRecipientEntryItemClickedListener != null) {
+            mRecipientEntryItemClickedListener
+                    .onRecipientEntryItemClicked(charactersTyped, position);
+        }
     }
 
-    private void submitItemAtPosition(int position) {
+    private int submitItemAtPosition(int position) {
         RecipientEntry entry = createValidatedEntry(getAdapter().getItem(position));
         if (entry == null) {
-            return;
+            return -1;
         }
         clearComposingText();
 
@@ -1798,6 +1819,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             editable.replace(start, end, chip);
         }
         sanitizeBetween();
+
+        return end - start;
     }
 
     private RecipientEntry createValidatedEntry(RecipientEntry item) {
