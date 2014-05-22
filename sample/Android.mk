@@ -16,7 +16,7 @@ LOCAL_PATH:= $(call my-dir)
 
 # Include res dir from chips
 chips_dir := ../res
-res_dirs := res $(chips_dir)
+local_res_dirs := res $(chips_dir)
 
 ##################################################
 # Build APK
@@ -31,7 +31,7 @@ LOCAL_SDK_VERSION := 18
 
 LOCAL_SRC_FILES := $(call all-java-files-under, src) \
         $(call all-logtags-files-under, $(src_dirs))
-LOCAL_RESOURCE_DIR := $(addprefix $(LOCAL_PATH)/, $(res_dirs))
+LOCAL_RESOURCE_DIR := $(addprefix $(LOCAL_PATH)/, $(local_res_dirs))
 LOCAL_AAPT_FLAGS := --auto-add-overlay
 LOCAL_AAPT_FLAGS += --extra-packages com.android.ex.chips
 
