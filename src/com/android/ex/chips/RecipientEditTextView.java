@@ -2981,4 +2981,29 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     public BaseRecipientAdapter getAdapter() {
         return (BaseRecipientAdapter) super.getAdapter();
     }
+
+    /**
+     * Append a new {@link RecipientEntry} to the end of the recipient chips, leaving any
+     * unfinished text at the end.
+     */
+    public void appendRecipientEntry(final RecipientEntry entry) {
+        clearComposingText();
+
+        final Editable editable = getText();
+        int chipInsertionPoint = 0;
+
+        // Find the end of last chip and see if there's any unchipified text.
+        final DrawableRecipientChip[] recips = getSortedRecipients();
+        if (recips != null && recips.length > 0) {
+            final DrawableRecipientChip last = recips[recips.length - 1];
+            // The chip will be inserted at the end of last chip + 1. All the unfinished text after
+            // the insertion point will be kept untouched.
+            chipInsertionPoint = editable.getSpanEnd(last) + 1;
+        }
+
+        final CharSequence chip = createChip(entry, false);
+        if (chip != null) {
+            editable.insert(chipInsertionPoint, chip);
+        }
+    }
 }
