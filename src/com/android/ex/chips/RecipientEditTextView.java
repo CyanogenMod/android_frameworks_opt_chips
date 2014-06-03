@@ -753,8 +753,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             final byte[] origPhotoBytes = contact.getPhotoBytes();
             // There may not be a photo yet if anything but the first contact address
             // was selected.
-            if (origPhotoBytes == null && (contact.getPhotoThumbnailUri() != null ||
-                    getAdapter().ignoreNullThumbnailUri())) {
+            if (origPhotoBytes == null) {
                 // TODO: cache this in the recipient entry?
                 getAdapter().fetchPhoto(contact, new PhotoManager.PhotoManagerCallback() {
                         @Override

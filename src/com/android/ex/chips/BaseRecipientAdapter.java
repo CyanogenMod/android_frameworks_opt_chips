@@ -580,16 +580,6 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
     }
 
     /**
-     * If true, a null thumbnail uri is ignored when trying to query for a photo.
-     * Derived classes should only return true if a {@link com.android.ex.chips.PhotoManager}
-     * is used that does not rely on thumbnail uris. Default implementation returns {@code false}.
-     * @return
-     */
-    public boolean ignoreNullThumbnailUri() {
-        return false;
-    }
-
-    /**
      * If true, forces using the {@link com.android.ex.chips.SingleRecipientArrayAdapter}
      * instead of {@link com.android.ex.chips.RecipientAlternatesAdapter} when
      * clicking on a chip. Default implementation returns {@code false}.
