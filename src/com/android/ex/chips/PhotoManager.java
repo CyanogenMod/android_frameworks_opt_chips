@@ -37,12 +37,6 @@ public interface PhotoManager {
      */
     void populatePhotoBytesAsync(RecipientEntry entry, PhotoManagerCallback callback);
 
-    /**
-     * Sets the {@link com.android.ex.chips.RecipientEntry}'s photo bytes. All work
-     * is performed synchronously.
-     */
-    void populatePhotoBytesSync(RecipientEntry entry);
-
     interface PhotoManagerCallback {
         void onPhotoBytesAsynchronouslyPopulated();
     }
