@@ -620,14 +620,19 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      */
     private Bitmap createSelectedChip(RecipientEntry contact, TextPaint paint) {
         paint.setColor(sSelectedTextColor);
-        Bitmap photo;
-        if (mDisableDelete) {
-            // Show the avatar instead if we don't want to delete
-            photo = getAvatarIcon(contact);
-        } else {
-            photo = ((BitmapDrawable) mChipDelete).getBitmap();
+        final ChipBitmapContainer bitmapContainer = createChipBitmap(contact, paint,
+                mChipBackgroundPressed);
+
+        if (bitmapContainer.loadIcon) {
+            if (mDisableDelete) {
+                // Show the avatar instead if we don't want to delete
+                loadAvatarIcon(contact, bitmapContainer, paint);
+            } else {
+                drawIcon(bitmapContainer, ((BitmapDrawable) mChipDelete).getBitmap(), paint);
+            }
         }
-        return createChipBitmap(contact, paint, photo, mChipBackgroundPressed);
+
+        return bitmapContainer.bitmap;
     }
 
     /**
@@ -638,17 +643,25 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      */
     private Bitmap createUnselectedChip(RecipientEntry contact, TextPaint paint) {
         Drawable background = getChipBackground(contact);
-        Bitmap photo = getAvatarIcon(contact);
         paint.setColor(getContext().getResources().getColor(android.R.color.black));
-        return createChipBitmap(contact, paint, photo, background);
+        ChipBitmapContainer bitmapContainer = createChipBitmap(contact, paint, background);
+
+        if (bitmapContainer.loadIcon) {
+            loadAvatarIcon(contact, bitmapContainer, paint);
+        }
+        return bitmapContainer.bitmap;
     }
 
-    private Bitmap createChipBitmap(RecipientEntry contact, TextPaint paint, Bitmap icon,
-        Drawable background) {
+    private ChipBitmapContainer createChipBitmap(RecipientEntry contact, TextPaint paint,
+            Drawable background) {
+        final ChipBitmapContainer result = new ChipBitmapContainer();
+
         if (background == null) {
-            Log.w(TAG, "Unable to draw a background for the chips as it was never set");
-            return Bitmap.createBitmap(
+            Log.w(TAG, "Unable to draw a background for the chip as it was never set");
+            result.bitmap = Bitmap.createBitmap(
                     (int) mChipHeight * 2, (int) mChipHeight, Bitmap.Config.ARGB_8888);
+            result.loadIcon = false;
+            return result;
         }
 
         Rect backgroundPadding = new Rect();
@@ -674,8 +687,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 + backgroundPadding.left + backgroundPadding.right);
 
         // Create the background of the chip.
-        Bitmap tmpBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(tmpBitmap);
+        result.bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(result.bitmap);
 
         // Draw the background drawable
         background.setBounds(0, 0, width, height);
@@ -686,19 +699,27 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 width - backgroundPadding.right - mChipPadding - textWidth;
         canvas.drawText(ellipsizedText, 0, ellipsizedText.length(),
                 textX, getTextYOffset(ellipsizedText.toString(), paint, height), paint);
-        if (icon != null) {
-            // Draw the icon
-            int iconX = shouldPositionAvatarOnRight() ?
-                    width - backgroundPadding.right - iconWidth :
-                    backgroundPadding.left;
-            RectF src = new RectF(0, 0, icon.getWidth(), icon.getHeight());
-            RectF dst = new RectF(iconX,
-                    0 + backgroundPadding.top,
-                    iconX + iconWidth,
-                    height - backgroundPadding.bottom);
-            drawIconOnCanvas(icon, canvas, paint, src, dst);
-        }
-        return tmpBitmap;
+
+        // Set the variables that are needed to draw the icon bitmap once it's loaded
+        int iconX = shouldPositionAvatarOnRight() ? width - backgroundPadding.right - iconWidth :
+                backgroundPadding.left;
+        result.left = iconX;
+        result.top = backgroundPadding.top;
+        result.right = iconX + iconWidth;
+        result.bottom = height - backgroundPadding.bottom;
+
+        return result;
+    }
+
+    /**
+     * Helper function that draws the loaded icon bitmap into the chips bitmap
+     */
+    private void drawIcon(ChipBitmapContainer bitMapResult, Bitmap icon, Paint paint) {
+        final Canvas canvas = new Canvas(bitMapResult.bitmap);
+        final RectF src = new RectF(0, 0, icon.getWidth(), icon.getHeight());
+        final RectF dst = new RectF(bitMapResult.left, bitMapResult.top, bitMapResult.right,
+                bitMapResult.bottom);
+        drawIconOnCanvas(icon, canvas, paint, src, dst);
     }
 
     /**
@@ -718,7 +739,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * Returns the avatar icon to use for this recipient entry. Returns null if we don't want to
      * draw an icon for this recipient.
      */
-    private Bitmap getAvatarIcon(RecipientEntry contact) {
+    private void loadAvatarIcon(final RecipientEntry contact,
+            final ChipBitmapContainer bitmapContainer, final Paint paint) {
         // Don't draw photos for recipients that have been typed in OR generated on the fly.
         long contactId = contact.getContactId();
         boolean drawPhotos = isPhoneQuery() ?
@@ -728,24 +750,34 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                                 !TextUtils.isEmpty(contact.getDisplayName())));
 
         if (drawPhotos) {
-            byte[] photoBytes = contact.getPhotoBytes();
+            final byte[] origPhotoBytes = contact.getPhotoBytes();
             // There may not be a photo yet if anything but the first contact address
             // was selected.
-            if (photoBytes == null && (contact.getPhotoThumbnailUri() != null ||
+            if (origPhotoBytes == null && (contact.getPhotoThumbnailUri() != null ||
                     getAdapter().ignoreNullThumbnailUri())) {
                 // TODO: cache this in the recipient entry?
-                getAdapter().fetchPhoto(contact, contact.getPhotoThumbnailUri());
-                photoBytes = contact.getPhotoBytes();
-            }
-            if (photoBytes != null) {
-                return BitmapFactory.decodeByteArray(photoBytes, 0, photoBytes.length);
+                getAdapter().fetchPhoto(contact, new PhotoManager.PhotoManagerCallback() {
+                        @Override
+                        public void onPhotoBytesAsynchronouslyPopulated() {
+                            final byte[] loadedPhotoBytes = contact.getPhotoBytes();
+                            final Bitmap icon;
+                            if (loadedPhotoBytes != null) {
+                                icon = BitmapFactory.decodeByteArray(loadedPhotoBytes, 0,
+                                        loadedPhotoBytes.length);
+                            } else {
+                                // TODO: can the scaled down default photo be cached?
+                                icon = mDefaultContactPhoto;
+                            }
+                            // This is called on the main thread so we can draw the icon here
+                            drawIcon(bitmapContainer, icon, paint);
+                        }
+                });
             } else {
-                // TODO: can the scaled down default photo be cached?
-                return mDefaultContactPhoto;
+                final Bitmap icon = BitmapFactory.decodeByteArray(origPhotoBytes, 0,
+                        origPhotoBytes.length);
+                drawIcon(bitmapContainer, icon, paint);
             }
         }
-
-        return null;
     }
 
     /**
@@ -3005,5 +3037,15 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         if (chip != null) {
             editable.insert(chipInsertionPoint, chip);
         }
+    }
+
+    private static class ChipBitmapContainer {
+        Bitmap bitmap;
+        // information used for positioning the loaded icon
+        boolean loadIcon = true;
+        float left;
+        float top;
+        float right;
+        float bottom;
     }
 }

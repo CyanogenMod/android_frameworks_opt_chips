@@ -840,8 +840,8 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
         return mTempEntries != null ? mTempEntries : mEntries;
     }
 
-    protected void fetchPhoto(final RecipientEntry entry, final Uri photoThumbnailUri) {
-        mPhotoManager.populatePhotoBytesSync(entry);
+    protected void fetchPhoto(final RecipientEntry entry, PhotoManager.PhotoManagerCallback cb) {
+        mPhotoManager.populatePhotoBytesAsync(entry, cb);
     }
 
     private Cursor doQuery(CharSequence constraint, int limit, Long directoryId) {
