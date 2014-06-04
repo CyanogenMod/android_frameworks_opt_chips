@@ -769,6 +769,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                             }
                             // This is called on the main thread so we can draw the icon here
                             drawIcon(bitmapContainer, icon, paint);
+                            // The view might not redraw itself since it's loaded in the background
+                            invalidate();
                         }
                 });
             } else {
