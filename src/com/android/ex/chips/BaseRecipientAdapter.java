@@ -919,4 +919,9 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
     public void onPhotoBytesAsynchronouslyPopulated() {
         notifyDataSetChanged();
     }
+
+    @Override
+    public void onPhotoBytesAsyncLoadFailed() {
+        // Don't care
+    }
 }
