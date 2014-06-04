@@ -16,10 +16,13 @@
 
 package com.android.ex.chips;
 
+import android.annotation.TargetApi;
+import android.content.ClipData;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.text.Editable;
@@ -842,6 +845,34 @@ public class ChipsTest extends AndroidTestCase {
         assertEquals(mEditable.getSpans(mEditable.toString().indexOf("user2@user.com"), mEditable
                 .length(), DrawableRecipientChip.class).length, 1);
         assertEquals(mEditable.toString(), "<user1>, <user2@user.com>, ");
+    }
+
+    @TargetApi(16)
+    public void testHandlePasteClip() {
+        MockRecipientEditTextView view = createViewForTesting();
+
+        ClipData clipData = null;
+        mEditable = new SpannableStringBuilder();
+        view.handlePasteClip(clipData);
+        assertEquals("", view.getText().toString());
+
+        clipData = ClipData.newPlainText("user label", "<foo@example.com>");
+        mEditable = new SpannableStringBuilder();
+        view.handlePasteClip(clipData);
+        assertEquals("<foo@example.com>", view.getText().toString());
+
+        clipData = ClipData.newHtmlText("user label",
+                "<bar@example.com>", "<a href=\"mailto:bar@example.com\">email</a>");
+        mEditable = new SpannableStringBuilder();
+        view.handlePasteClip(clipData);
+        assertEquals("<bar@example.com>", view.getText().toString());
+
+        ClipData.Item clipImageData = new ClipData.Item(Uri.parse("content://my/image"));
+        clipData = new ClipData("user label", new String[]{"image/jpeg"}, clipImageData);
+        mEditable = new SpannableStringBuilder();
+        view.handlePasteClip(clipData);
+        assertEquals("", view.getText().toString()
+        );
     }
 
     public void testGetPastTerminators() {
