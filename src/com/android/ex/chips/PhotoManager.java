@@ -39,5 +39,6 @@ public interface PhotoManager {
 
     interface PhotoManagerCallback {
         void onPhotoBytesAsynchronouslyPopulated();
+        void onPhotoBytesAsyncLoadFailed();
     }
 }

@@ -18,8 +18,6 @@ package com.android.ex.chips;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
@@ -27,7 +25,6 @@ import android.support.v4.util.LruCache;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -70,7 +67,9 @@ public class DefaultPhotoManager implements PhotoManager {
             final byte[] photoBytes = mPhotoCacheMap.get(photoThumbnailUri);
             if (photoBytes != null) {
                 entry.setPhotoBytes(photoBytes);
-                // notifyDataSetChanged() should be called by a caller.
+                if (callback != null) {
+                    callback.onPhotoBytesAsynchronouslyPopulated();
+                }
             } else {
                 if (DEBUG) {
                     Log.d(TAG, "No photo cache for " + entry.getDisplayName()
@@ -78,6 +77,8 @@ public class DefaultPhotoManager implements PhotoManager {
                 }
                 fetchPhotoAsync(entry, photoThumbnailUri, callback);
             }
+        } else if (callback != null) {
+            callback.onPhotoBytesAsyncLoadFailed();
         }
     }
 
@@ -134,6 +135,8 @@ public class DefaultPhotoManager implements PhotoManager {
                     if (callback != null) {
                         callback.onPhotoBytesAsynchronouslyPopulated();
                     }
+                } else if (callback != null) {
+                    callback.onPhotoBytesAsyncLoadFailed();
                 }
             }
         };

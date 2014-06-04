@@ -759,16 +759,18 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                         @Override
                         public void onPhotoBytesAsynchronouslyPopulated() {
                             final byte[] loadedPhotoBytes = contact.getPhotoBytes();
-                            final Bitmap icon;
-                            if (loadedPhotoBytes != null) {
-                                icon = BitmapFactory.decodeByteArray(loadedPhotoBytes, 0,
+                            final Bitmap icon = BitmapFactory.decodeByteArray(loadedPhotoBytes, 0,
                                         loadedPhotoBytes.length);
-                            } else {
-                                // TODO: can the scaled down default photo be cached?
-                                icon = mDefaultContactPhoto;
-                            }
                             // This is called on the main thread so we can draw the icon here
                             drawIcon(bitmapContainer, icon, paint);
+                            // The view might not redraw itself since it's loaded in the background
+                            invalidate();
+                        }
+
+                        @Override
+                        public void onPhotoBytesAsyncLoadFailed() {
+                            // TODO: can the scaled down default photo be cached?
+                            drawIcon(bitmapContainer, mDefaultContactPhoto, paint);
                             // The view might not redraw itself since it's loaded in the background
                             invalidate();
                         }
