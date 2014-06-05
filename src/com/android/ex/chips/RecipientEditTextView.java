@@ -756,24 +756,38 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             if (origPhotoBytes == null) {
                 // TODO: cache this in the recipient entry?
                 getAdapter().fetchPhoto(contact, new PhotoManager.PhotoManagerCallback() {
-                        @Override
-                        public void onPhotoBytesAsynchronouslyPopulated() {
-                            final byte[] loadedPhotoBytes = contact.getPhotoBytes();
-                            final Bitmap icon = BitmapFactory.decodeByteArray(loadedPhotoBytes, 0,
-                                        loadedPhotoBytes.length);
-                            // This is called on the main thread so we can draw the icon here
-                            drawIcon(bitmapContainer, icon, paint);
-                            // The view might not redraw itself since it's loaded in the background
-                            invalidate();
-                        }
+                    @Override
+                    public void onPhotoBytesAsynchronouslyPopulated() {
+                        final byte[] loadedPhotoBytes = contact.getPhotoBytes();
+                        final Bitmap icon = BitmapFactory.decodeByteArray(loadedPhotoBytes, 0,
+                                loadedPhotoBytes.length);
+                        tryDrawAndInvalidate(icon);
+                    }
 
-                        @Override
-                        public void onPhotoBytesAsyncLoadFailed() {
-                            // TODO: can the scaled down default photo be cached?
-                            drawIcon(bitmapContainer, mDefaultContactPhoto, paint);
-                            // The view might not redraw itself since it's loaded in the background
+                    @Override
+                    public void onPhotoBytesAsyncLoadFailed() {
+                        // TODO: can the scaled down default photo be cached?
+                        tryDrawAndInvalidate(mDefaultContactPhoto);
+                    }
+
+                    private void tryDrawAndInvalidate(Bitmap icon) {
+                        drawIcon(bitmapContainer, icon, paint);
+                        // The caller might originated from a background task. However, if the
+                        // background task has already completed, the view might be already drawn
+                        // on the UI but the callback would happen on the background thread.
+                        // So if we are on a background thread, post an invalidate call to the UI.
+                        if (Looper.myLooper() == Looper.getMainLooper()) {
+                            // The view might not redraw itself since it's loaded asynchronously
                             invalidate();
+                        } else {
+                            post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    invalidate();
+                                }
+                            });
                         }
+                    }
                 });
             } else {
                 final Bitmap icon = BitmapFactory.decodeByteArray(origPhotoBytes, 0,
