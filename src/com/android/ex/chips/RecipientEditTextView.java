@@ -1830,8 +1830,15 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 return null;
             }
         }
+        onChipCreated(entry);
         return chipText;
     }
+
+    /**
+     * A callback for subclasses to use to know when a chip was created with the
+     * given RecipientEntry.
+     */
+    protected void onChipCreated(RecipientEntry entry) {}
 
     /**
      * When an item in the suggestions list has been clicked, create a chip from the
