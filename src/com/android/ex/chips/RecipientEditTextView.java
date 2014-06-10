@@ -3063,6 +3063,22 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
     }
 
+    /**
+     * Remove all chips matching the given RecipientEntry.
+     */
+    public void removeRecipientEntry(final RecipientEntry entry) {
+        final DrawableRecipientChip[] recips = getText()
+                .getSpans(0, getText().length(), DrawableRecipientChip.class);
+
+        for (final DrawableRecipientChip recipient : recips) {
+            final RecipientEntry existingEntry = recipient.getEntry();
+            if (existingEntry != null && existingEntry.isValid() &&
+                    existingEntry.isSamePerson(entry)) {
+                removeChip(recipient);
+            }
+        }
+    }
+
     private static class ChipBitmapContainer {
         Bitmap bitmap;
         // information used for positioning the loaded icon
