@@ -253,4 +253,12 @@ public class RecipientEntry {
     public String toString() {
         return mDisplayName + " <" + mDestination + ">, isValid=" + mIsValid;
     }
+
+    /**
+     * Returns if entry represents the same person as this instance. The default implementation
+     * checks whether the contact ids are the same, and subclasses may opt to override this.
+     */
+    public boolean isSamePerson(final RecipientEntry entry) {
+        return entry != null && mContactId == entry.mContactId;
+    }
 }
