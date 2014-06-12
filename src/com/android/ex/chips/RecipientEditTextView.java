@@ -757,6 +757,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 // TODO: cache this in the recipient entry?
                 getAdapter().fetchPhoto(contact, new PhotoManager.PhotoManagerCallback() {
                     @Override
+                    public void onPhotoBytesPopulated() {
+                        // Call through to the async version which will ensure
+                        // proper threading.
+                        onPhotoBytesAsynchronouslyPopulated();
+                    }
+
+                    @Override
                     public void onPhotoBytesAsynchronouslyPopulated() {
                         final byte[] loadedPhotoBytes = contact.getPhotoBytes();
                         final Bitmap icon = BitmapFactory.decodeByteArray(loadedPhotoBytes, 0,

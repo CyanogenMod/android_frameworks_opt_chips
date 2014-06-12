@@ -68,7 +68,7 @@ public class DefaultPhotoManager implements PhotoManager {
             if (photoBytes != null) {
                 entry.setPhotoBytes(photoBytes);
                 if (callback != null) {
-                    callback.onPhotoBytesAsynchronouslyPopulated();
+                    callback.onPhotoBytesPopulated();
                 }
             } else {
                 if (DEBUG) {
