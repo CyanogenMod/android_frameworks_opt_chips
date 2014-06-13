@@ -916,12 +916,17 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
     }
 
     @Override
+    public void onPhotoBytesPopulated() {
+        // Default implementation does nothing
+    }
+
+    @Override
     public void onPhotoBytesAsynchronouslyPopulated() {
         notifyDataSetChanged();
     }
 
     @Override
     public void onPhotoBytesAsyncLoadFailed() {
-        // Don't care
+        // Default implementation does nothing
     }
 }

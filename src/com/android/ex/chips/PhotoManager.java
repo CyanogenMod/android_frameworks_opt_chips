@@ -33,11 +33,13 @@ public interface PhotoManager {
      * If the photo bytes were fetched asynchronously,
      * {@link PhotoManagerCallback#onPhotoBytesAsynchronouslyPopulated()} is called. This
      * method is not called if the photo bytes have been cached previously (because no
-     * asynchronous work was performed.
+     * asynchronous work was performed). In that case,
+     * {@link PhotoManagerCallback#onPhotoBytesPopulated()} is called.
      */
     void populatePhotoBytesAsync(RecipientEntry entry, PhotoManagerCallback callback);
 
     interface PhotoManagerCallback {
+        void onPhotoBytesPopulated();
         void onPhotoBytesAsynchronouslyPopulated();
         void onPhotoBytesAsyncLoadFailed();
     }
