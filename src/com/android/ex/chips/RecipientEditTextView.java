@@ -28,12 +28,16 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Shader.TileMode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -827,9 +831,33 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * rectangle of the canvas.
      */
     protected void drawIconOnCanvas(Bitmap icon, Canvas canvas, Paint paint, RectF src, RectF dst) {
-        Matrix matrix = new Matrix();
+        final Matrix matrix = new Matrix();
+
+        // Draw bitmap through shader first.
+        final BitmapShader shader = new BitmapShader(icon, TileMode.CLAMP, TileMode.CLAMP);
+        matrix.reset();
+
+        // Fit bitmap to bounds.
         matrix.setRectToRect(src, dst, Matrix.ScaleToFit.FILL);
-        canvas.drawBitmap(icon, matrix, paint);
+
+        shader.setLocalMatrix(matrix);
+        paint.reset();
+        paint.setShader(shader);
+        paint.setAntiAlias(true);
+        paint.setFilterBitmap(true);
+        paint.setDither(true);
+        canvas.drawCircle(dst.centerX(), dst.centerY(), dst.width() / 2f, paint);
+
+        // Then draw the border.
+        final float borderWidth = 1f;
+        paint.reset();
+        paint.setColor(Color.TRANSPARENT);
+        paint.setStyle(Style.STROKE);
+        paint.setStrokeWidth(borderWidth);
+        paint.setAntiAlias(true);
+        canvas.drawCircle(dst.centerX(), dst.centerY(), dst.width() / 2f - borderWidth / 2, paint);
+
+        paint.reset();
     }
 
     private DrawableRecipientChip constructChipSpan(RecipientEntry contact, boolean pressed)
@@ -936,8 +964,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         if (mInvalidChipBackground == null) {
             mInvalidChipBackground = r.getDrawable(R.drawable.chip_background_invalid);
         }
-        mAvatarPosition = a.getInt(R.styleable.RecipientEditTextView_avatarPosition, 0);
-        mImageSpanAlignment = a.getInt(R.styleable.RecipientEditTextView_imageSpanAlignment, 0);
+        mAvatarPosition =
+                a.getInt(R.styleable.RecipientEditTextView_avatarPosition, AVATAR_POSITION_START);
+        mImageSpanAlignment = a.getInt(R.styleable.RecipientEditTextView_imageSpanAlignment,
+                IMAGE_SPAN_ALIGNMENT_BASELINE);
         mDisableDelete = a.getBoolean(R.styleable.RecipientEditTextView_disableDelete, false);
 
         mLineSpacingExtra =  r.getDimension(R.dimen.line_spacing_extra);
