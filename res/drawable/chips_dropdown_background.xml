@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2011 The Android Open Source Project
+<!--
+     Copyright (C) 2014 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -14,10 +15,11 @@
      limitations under the License.
 -->
 
-<FrameLayout  xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <include layout="@layout/chips_recipient_dropdown_item"/>
+    <item android:drawable="@color/chips_dropdown_background_activated"
+          android:state_activated="true"/>
+    <item android:drawable="@color/chips_dropdown_background_pressed" android:state_pressed="true"/>
+    <item android:drawable="@android:color/white"/>
 
-</FrameLayout>
+</selector>

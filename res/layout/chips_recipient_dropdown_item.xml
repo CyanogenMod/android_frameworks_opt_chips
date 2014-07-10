@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2011 The Android Open Source Project
+<!--
+     Copyright (C) 2014 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -13,45 +14,43 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:minHeight="48dip"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:background="?android:attr/activatedBackgroundIndicator">
-    <LinearLayout
-        android:layout_width="0dip"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="vertical"
-        android:layout_weight="1">
-        <TextView android:id="@android:id/title"
-                  android:textColor="@drawable/list_item_font_primary"
-                  android:textSize="18sp"
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:singleLine="true"
-                  android:ellipsize="end"
-                  style="@style/ChipTitleStyle" />
-        <TextView android:id="@android:id/text1"
-                  android:textColor="@drawable/list_item_font_secondary"
-                  android:textSize="14sp"
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:singleLine="true"
-                  android:ellipsize="end"
-                  android:layout_marginTop="-4dip"
-                  style="@style/ChipSubtitleStyle" />
-    </LinearLayout>
+    android:layout_height="match_parent"
+    android:background="@drawable/chips_dropdown_background"
+    android:padding="16dp" >
+
     <ImageView
         android:id="@android:id/icon"
-        android:layout_width="48dip"
-        android:layout_height="48dip"
-        android:src="@drawable/ic_contact_picture"
-        android:cropToPadding="true"
-        android:scaleType="centerCrop"
-        style="@style/ChipIconStyle" />
-</LinearLayout>
+        style="@style/ChipIconStyle"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@null" />
+
+    <TextView
+        android:id="@android:id/title"
+        style="@style/ChipTitleStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:ellipsize="middle"
+        android:singleLine="true"
+        android:textColor="@color/chips_dropdown_text"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <!-- Use bottom padding instead of margin to workaround RelativeLayout bug. -->
+
+    <TextView
+        android:id="@android:id/text1"
+        style="@style/ChipSubtitleStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:ellipsize="middle"
+        android:paddingBottom="5dp"
+        android:singleLine="true"
+        android:textColor="@color/chips_dropdown_text"
+        android:textSize="14sp" />
+
+</RelativeLayout>

@@ -210,7 +210,7 @@ public class DropdownChipLayouter {
      * {@link #getDestinationResId()}, and {@link #getPhotoResId()}.
      */
     protected int getAlternateItemLayoutResId() {
-        return R.layout.chips_alternate_item;
+        return R.layout.chips_recipient_dropdown_item;
     }
 
     /**

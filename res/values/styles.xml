@@ -24,21 +24,24 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:dropDownVerticalOffset">-6dip</item>
         <item name="android:dropDownHorizontalOffset">-16dip</item>
+        <item name="android:dropDownWidth">match_parent</item>
         <item name="android:minHeight">48dip</item>
         <item name="android:lineSpacingExtra">@dimen/line_spacing_extra</item>
         <item name="android:textAlignment" tools:ignore="NewApi">viewStart</item>
         <item name="android:textDirection" tools:ignore="NewApi">locale</item>
+        <item name="android:popupBackground">@drawable/chips_popup_background</item>
     </style>
 
     <style name="ChipTitleStyle">
-        <item name="android:paddingLeft">@dimen/chip_title_padding_start</item>
+        <item name="android:layout_toRightOf">@android:id/icon</item>
     </style>
 
     <style name="ChipSubtitleStyle">
-        <item name="android:paddingLeft">@dimen/chip_subtitle_padding_start</item>
+        <item name="android:layout_toRightOf">@android:id/icon</item>
     </style>
 
     <style name="ChipIconStyle">
-        <item name="android:layout_marginLeft">@dimen/chip_icon_margin_start</item>
+        <item name="android:layout_marginRight">@dimen/chip_icon_margin_end</item>
+        <item name="android:layout_alignParentLeft">true</item>
     </style>
 </resources>

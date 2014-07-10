@@ -15,14 +15,15 @@
 -->
 <resources>
     <style name="ChipTitleStyle">
-        <item name="android:paddingStart">@dimen/chip_title_padding_start</item>
+        <item name="android:layout_toEndOf">@android:id/icon</item>
     </style>
 
     <style name="ChipSubtitleStyle">
-        <item name="android:paddingStart">@dimen/chip_subtitle_padding_start</item>
+        <item name="android:layout_toEndOf">@android:id/icon</item>
     </style>
 
     <style name="ChipIconStyle">
-        <item name="android:layout_marginStart">@dimen/chip_icon_margin_start</item>
+        <item name="android:layout_marginEnd">@dimen/chip_icon_margin_end</item>
+        <item name="android:layout_alignParentStart">true</item>
     </style>
 </resources>
