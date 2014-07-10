@@ -137,20 +137,15 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     // Resources for displaying chips.
     private Drawable mChipBackground = null;
-
     private Drawable mChipDelete = null;
-
     private Drawable mInvalidChipBackground;
-
     private Drawable mChipBackgroundPressed;
 
     private float mChipHeight;
-
     private float mChipFontSize;
-
     private float mLineSpacingExtra;
-
     private int mChipPadding;
+    private final int mTextHeight;
 
     /**
      * Enumerator for avatar position. See attr.xml for more details.
@@ -295,6 +290,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     public RecipientEditTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setChipDimensions(context, attrs);
+        mTextHeight = calculateTextHeight();
         if (sSelectedTextColor == -1) {
             sSelectedTextColor = context.getResources().getColor(android.R.color.white);
         }
@@ -333,6 +329,21 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         setOnEditorActionListener(this);
 
         setDropdownChipLayouter(new DropdownChipLayouter(LayoutInflater.from(context), context));
+    }
+
+    private int calculateTextHeight() {
+        final Rect textBounds = new Rect();
+        final TextPaint paint = getPaint();
+
+        textBounds.setEmpty();
+        // First measure the bounds of a sample text.
+        final String textHeightSample = "a";
+        paint.getTextBounds(textHeightSample, 0, textHeightSample.length(), textBounds);
+
+        textBounds.left = 0;
+        textBounds.right = 0;
+
+        return textBounds.height();
     }
 
     public void setDropdownChipLayouter(DropdownChipLayouter dropdownChipLayouter) {
@@ -702,7 +713,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 mChipPadding + backgroundPadding.left :
                 width - backgroundPadding.right - mChipPadding - textWidth;
         canvas.drawText(ellipsizedText, 0, ellipsizedText.length(),
-                textX, getTextYOffset(ellipsizedText.toString(), paint, height), paint);
+                textX, getTextYOffset(height), paint);
 
         // Set the variables that are needed to draw the icon bitmap once it's loaded
         int iconX = shouldPositionAvatarOnRight() ? width - backgroundPadding.right - iconWidth :
@@ -819,11 +830,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     /**
      * Given a height, returns a Y offset that will draw the text in the middle of the height.
      */
-    protected float getTextYOffset(String text, TextPaint paint, int height) {
-        Rect bounds = new Rect();
-        paint.getTextBounds(text, 0, text.length(), bounds);
-        int textHeight = bounds.bottom - bounds.top ;
-        return height - ((height - textHeight) / 2) - (int)paint.descent();
+    protected float getTextYOffset(int height) {
+        return height - ((height - mTextHeight) / 2);
     }
 
     /**
