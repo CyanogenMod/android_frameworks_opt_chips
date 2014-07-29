@@ -568,7 +568,7 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
         Cursor cursor = getCursor();
         cursor.moveToPosition(position);
         if (convertView == null) {
-            convertView = mDropdownChipLayouter.newView();
+            convertView = mDropdownChipLayouter.newView(AdapterType.RECIPIENT_ALTERNATES);
         }
         if (cursor.getLong(Queries.Query.DATA_ID) == mCurrentId) {
             mCheckedItemPosition = position;
@@ -591,7 +591,7 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        return mDropdownChipLayouter.newView();
+        return mDropdownChipLayouter.newView(AdapterType.RECIPIENT_ALTERNATES);
     }
 
     /*package*/ static interface OnCheckedItemChangedListener {

@@ -14,16 +14,36 @@
     limitations under the License.
 -->
 <resources>
-    <style name="ChipTitleStyle">
+    <style name="ChipWrapperStyle">
+        <item name="android:paddingStart">@dimen/chip_wrapper_start_padding</item>
+        <item name="android:paddingTop">@dimen/chip_wrapper_top_padding</item>
+        <item name="android:paddingEnd">@dimen/chip_wrapper_end_padding</item>
+        <item name="android:paddingBottom">@dimen/chip_wrapper_bottom_padding</item>
+    </style>
+
+    <style name="ChipTitleStartIconStyle" parent="@style/ChipTitleBaseStyle">
         <item name="android:layout_toEndOf">@android:id/icon</item>
     </style>
 
-    <style name="ChipSubtitleStyle">
+    <style name="ChipTitleEndIconStyle" parent="@style/ChipTitleBaseStyle">
+        <item name="android:layout_toStartOf">@android:id/icon</item>
+    </style>
+
+    <style name="ChipSubtitleStartIconStyle" parent="@style/ChipSubtitleBaseStyle">
         <item name="android:layout_toEndOf">@android:id/icon</item>
     </style>
 
-    <style name="ChipIconStyle">
+    <style name="ChipSubtitleEndIconStyle" parent="@style/ChipSubtitleBaseStyle">
+        <item name="android:layout_toStartOf">@android:id/icon</item>
+    </style>
+
+    <style name="ChipStartIconStyle" parent="@style/ChipIconBaseStyle">
         <item name="android:layout_marginEnd">@dimen/chip_icon_margin_end</item>
         <item name="android:layout_alignParentStart">true</item>
+    </style>
+
+    <style name="ChipEndIconStyle" parent="@style/ChipIconBaseStyle">
+        <item name="android:layout_marginStart">@dimen/chip_icon_margin_end</item>
+        <item name="android:layout_alignParentEnd">true</item>
     </style>
 </resources>
