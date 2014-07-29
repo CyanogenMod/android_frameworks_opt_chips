@@ -14,7 +14,7 @@
     limitations under the License.
 -->
 <resources>
-    <style name="ChipWrapperStyle">
+    <style name="ChipAutocompleteWrapperStyle">
         <item name="android:paddingStart">@dimen/chip_wrapper_start_padding</item>
         <item name="android:paddingTop">@dimen/chip_wrapper_top_padding</item>
         <item name="android:paddingEnd">@dimen/chip_wrapper_end_padding</item>

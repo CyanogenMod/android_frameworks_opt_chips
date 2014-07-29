@@ -144,7 +144,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private float mChipHeight;
     private float mChipFontSize;
     private float mLineSpacingExtra;
-    private int mChipPadding;
+    private int mChipTextStartPadding;
+    private int mChipTextEndPadding;
     private final int mTextHeight;
 
     /**
@@ -698,8 +699,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
         // Make sure there is a minimum chip width so the user can ALWAYS
         // tap a chip without difficulty.
-        int width = Math.max(iconWidth * 2, textWidth + (mChipPadding * 2) + iconWidth
-                + backgroundPadding.left + backgroundPadding.right);
+        int width = Math.max(iconWidth * 2, textWidth + mChipTextStartPadding + mChipTextEndPadding
+                + iconWidth + backgroundPadding.left + backgroundPadding.right);
 
         // Create the background of the chip.
         result.bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
@@ -710,8 +711,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         background.draw(canvas);
         // Draw the text vertically aligned
         int textX = shouldPositionAvatarOnRight() ?
-                mChipPadding + backgroundPadding.left :
-                width - backgroundPadding.right - mChipPadding - textWidth;
+                mChipTextEndPadding + backgroundPadding.left :
+                width - backgroundPadding.right - mChipTextEndPadding - textWidth;
         canvas.drawText(ellipsizedText, 0, ellipsizedText.length(),
                 textX, getTextYOffset(height), paint);
 
@@ -928,7 +929,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * that will be added to the chip.
      */
     private float calculateAvailableWidth() {
-        return getWidth() - getPaddingLeft() - getPaddingRight() - (mChipPadding * 2);
+        return getWidth() - getPaddingLeft() - getPaddingRight() - mChipTextStartPadding
+                - mChipTextEndPadding;
     }
 
 
@@ -950,9 +952,21 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         if (mChipDelete == null) {
             mChipDelete = r.getDrawable(R.drawable.chip_delete);
         }
-        mChipPadding = a.getDimensionPixelSize(R.styleable.RecipientEditTextView_chipPadding, -1);
-        if (mChipPadding == -1) {
-            mChipPadding = (int) r.getDimension(R.dimen.chip_padding);
+        mChipTextStartPadding = mChipTextEndPadding
+                = a.getDimensionPixelSize(R.styleable.RecipientEditTextView_chipPadding, -1);
+        if (mChipTextStartPadding == -1) {
+            mChipTextStartPadding = mChipTextEndPadding =
+                    (int) r.getDimension(R.dimen.chip_padding);
+        }
+        // xml-overrides for each individual padding
+        // TODO: add these to attr?
+        int overridePadding = (int) r.getDimension(R.dimen.chip_padding_start);
+        if (overridePadding >= 0) {
+            mChipTextStartPadding = overridePadding;
+        }
+        overridePadding = (int) r.getDimension(R.dimen.chip_padding_end);
+        if (overridePadding >= 0) {
+            mChipTextEndPadding = overridePadding;
         }
 
         mDefaultContactPhoto = BitmapFactory.decodeResource(r, R.drawable.ic_contact_picture);
