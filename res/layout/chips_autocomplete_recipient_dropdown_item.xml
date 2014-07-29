@@ -18,7 +18,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/chips_dropdown_background"
-    style="@style/ChipWrapperStyle">
+    style="@style/ChipAutocompleteWrapperStyle">
 
     <com.android.ex.chips.CircularImageView style="@style/ChipEndIconStyle" />
 
