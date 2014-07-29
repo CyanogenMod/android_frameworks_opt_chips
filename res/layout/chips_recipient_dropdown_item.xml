@@ -18,39 +18,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/chips_dropdown_background"
-    android:padding="16dp" >
+    style="@style/ChipWrapperStyle">
 
-    <com.android.ex.chips.CircularImageView
-        android:id="@android:id/icon"
-        style="@style/ChipIconStyle"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:contentDescription="@null" />
+    <com.android.ex.chips.CircularImageView style="@style/ChipStartIconStyle" />
 
-    <TextView
-        android:id="@android:id/title"
-        style="@style/ChipTitleStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:ellipsize="middle"
-        android:singleLine="true"
-        android:textColor="@color/chips_dropdown_text"
-        android:textSize="14sp"
-        android:textStyle="bold" />
+    <TextView style="@style/ChipTitleStartIconStyle" />
 
-    <!-- Use bottom padding instead of margin to workaround RelativeLayout bug. -->
-
-    <TextView
-        android:id="@android:id/text1"
-        style="@style/ChipSubtitleStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:ellipsize="middle"
-        android:paddingBottom="5dp"
-        android:singleLine="true"
-        android:textColor="@color/chips_dropdown_text"
-        android:textSize="14sp" />
+    <TextView style="@style/ChipSubtitleStartIconStyle" />
 
 </RelativeLayout>
