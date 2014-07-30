@@ -14,16 +14,10 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="@dimen/chip_dropdown_height"
-    android:background="@drawable/chips_dropdown_background"
-    style="@style/ChipAutocompleteWrapperStyle">
 
-    <com.android.ex.chips.CircularImageView style="@style/ChipEndIconStyle" />
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <TextView style="@style/ChipTitleEndIconStyle" />
+    <item android:state_activated="true" android:color="@android:color/white"/>
+    <item android:color="#757575"/>
 
-    <TextView style="@style/ChipSubtitleEndIconStyle" />
-
-</RelativeLayout>
+</selector>
