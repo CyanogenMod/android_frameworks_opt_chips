@@ -924,6 +924,14 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     }
 
     /**
+     * Calculate the offset from bottom of the EditText to top of the provided line.
+     */
+    private int calculateOffsetFromBottomToTop(int line) {
+        return -(int) ((mChipHeight + (2 * mLineSpacingExtra)) * (Math
+                .abs(getLineCount() - line)) + getPaddingBottom());
+    }
+
+    /**
      * Get the max amount of space a chip can take up. The formula takes into
      * account the width of the EditTextView, any view padding, and padding
      * that will be added to the chip.
@@ -1708,18 +1716,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                     return;
                 }
                 int line = getLayout().getLineForOffset(getChipStart(currentChip));
-                int bottom;
-                if (line == getLineCount() -1) {
-                    bottom = 0;
-                } else {
-                    bottom = -(int) ((mChipHeight + (2 * mLineSpacingExtra)) * (Math
-                            .abs(getLineCount() - 1 - line)));
-                }
+                int bottomOffset = calculateOffsetFromBottomToTop(line);
+
                 // Align the alternates popup with the left side of the View,
                 // regardless of the position of the chip tapped.
                 alternatesPopup.setWidth(width);
                 alternatesPopup.setAnchorView(RecipientEditTextView.this);
-                alternatesPopup.setVerticalOffset(bottom);
+                alternatesPopup.setVerticalOffset(bottomOffset);
                 alternatesPopup.setAdapter(result);
                 alternatesPopup.setOnItemClickListener(mAlternatesListener);
                 // Clear the checked item.
@@ -2254,12 +2257,12 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             return;
         }
         int line = getLayout().getLineForOffset(getChipStart(currentChip));
-        int bottom = calculateOffsetFromBottom(line);
+        int bottomOffset = calculateOffsetFromBottomToTop(line);
         // Align the alternates popup with the left side of the View,
         // regardless of the position of the chip tapped.
         popup.setWidth(width);
         popup.setAnchorView(this);
-        popup.setVerticalOffset(bottom);
+        popup.setVerticalOffset(bottomOffset);
         popup.setAdapter(createSingleAddressAdapter(currentChip));
         popup.setOnItemClickListener(new OnItemClickListener() {
             @Override

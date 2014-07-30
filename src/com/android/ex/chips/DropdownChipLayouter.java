@@ -64,6 +64,12 @@ public class DropdownChipLayouter {
         boolean showImage = true;
         CharSequence destinationType = getDestinationType(entry);
 
+        // If we don't have name but have destination, show destination as the main entry.
+        if (displayName == null && destination != null) {
+            displayName = destination;
+            destination = null;
+        }
+
         final View itemView = reuseOrInflateView(convertView, parent, type);
 
         final ViewHolder viewHolder = new ViewHolder(itemView);
