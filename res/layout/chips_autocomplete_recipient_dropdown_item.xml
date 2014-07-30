@@ -14,16 +14,24 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="@dimen/chip_dropdown_height"
     android:background="@drawable/chips_dropdown_background"
     style="@style/ChipAutocompleteWrapperStyle">
 
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView style="@style/ChipTitleStyle" />
+
+        <TextView style="@style/ChipSubtitleStyle" />
+
+    </LinearLayout>
+
     <com.android.ex.chips.CircularImageView style="@style/ChipEndIconStyle" />
 
-    <TextView style="@style/ChipTitleEndIconStyle" />
-
-    <TextView style="@style/ChipSubtitleEndIconStyle" />
-
-</RelativeLayout>
+</LinearLayout>
