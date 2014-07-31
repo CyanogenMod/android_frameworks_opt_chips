@@ -759,8 +759,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         boolean drawPhotos = isPhoneQuery() ?
                 contactId != RecipientEntry.INVALID_CONTACT
                 : (contactId != RecipientEntry.INVALID_CONTACT
-                        && (contactId != RecipientEntry.GENERATED_CONTACT &&
-                                !TextUtils.isEmpty(contact.getDisplayName())));
+                        && contactId != RecipientEntry.GENERATED_CONTACT);
 
         if (drawPhotos) {
             final byte[] origPhotoBytes = contact.getPhotoBytes();
