@@ -39,11 +39,18 @@
         <item name="android:paddingBottom">@dimen/chip_wrapper_bottom_padding</item>
     </style>
 
+    <style name="ChipTextViewLayoutStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
     <style name="ChipTitleStyle">
         <item name="android:id">@android:id/title</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_gravity">center_vertical</item>
         <item name="android:ellipsize">middle</item>
         <item name="android:singleLine">true</item>
         <item name="android:textColor">@color/chips_dropdown_title_text</item>
@@ -54,7 +61,6 @@
         <item name="android:id">@android:id/text1</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_gravity">center_vertical</item>
         <item name="android:ellipsize">middle</item>
         <item name="android:singleLine">true</item>
         <item name="android:textColor">@color/chips_dropdown_subtitle_text</item>
