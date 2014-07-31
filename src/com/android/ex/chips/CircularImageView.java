@@ -10,6 +10,8 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
@@ -55,7 +57,17 @@ public class CircularImageView extends ImageView {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        BitmapDrawable bitmapDrawable = (BitmapDrawable) getDrawable();
+        Drawable drawable = getDrawable();
+        BitmapDrawable bitmapDrawable = null;
+        // support state list drawable by getting the current state
+        if (drawable instanceof StateListDrawable) {
+            if (((StateListDrawable) drawable).getCurrent() != null) {
+                bitmapDrawable = (BitmapDrawable) drawable.getCurrent();
+            }
+        } else {
+            bitmapDrawable = (BitmapDrawable) drawable;
+        }
+
         if (bitmapDrawable == null) {
             return;
         }
@@ -65,7 +77,8 @@ public class CircularImageView extends ImageView {
         }
 
         source.set(0, 0, bitmap.getWidth(), bitmap.getHeight());
-        destination.set(0, 0, getWidth(), getHeight());
+        destination.set(getPaddingLeft(), getPaddingTop(), getWidth() - getPaddingRight(),
+                getHeight() - getPaddingBottom());
 
         drawBitmapWithCircleOnCanvas(bitmap, canvas, source, destination);
     }

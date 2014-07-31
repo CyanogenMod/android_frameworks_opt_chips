@@ -3,7 +3,10 @@ package com.android.ex.chips;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.text.TextUtils;
 import android.text.util.Rfc822Tokenizer;
@@ -29,17 +32,32 @@ public class DropdownChipLayouter {
         SINGLE_RECIPIENT
     }
 
+    public interface ChipDeleteListener {
+        void onChipDelete();
+    }
+
     private final LayoutInflater mInflater;
     private final Context mContext;
+    private ChipDeleteListener mDeleteListener;
     private Query mQuery;
 
     public DropdownChipLayouter(LayoutInflater inflater, Context context) {
+        this(inflater, context, null);
+    }
+
+    public DropdownChipLayouter(LayoutInflater inflater, Context context,
+            ChipDeleteListener deleteListener) {
         mInflater = inflater;
         mContext = context;
+        mDeleteListener = deleteListener;
     }
 
     public void setQuery(Query query) {
         mQuery = query;
+    }
+
+    public void setDeleteListener(ChipDeleteListener listener) {
+        mDeleteListener = listener;
     }
 
 
@@ -58,17 +76,20 @@ public class DropdownChipLayouter {
      */
     public View bindView(View convertView, ViewGroup parent, RecipientEntry entry, int position,
         AdapterType type, String constraint) {
+        return bindView(convertView, parent, entry, position, type, constraint, null);
+    }
+
+    /**
+     * See {@link #bindView(View, ViewGroup, RecipientEntry, int, AdapterType, String)}
+     * @param deleteDrawable
+     */
+    public View bindView(View convertView, ViewGroup parent, RecipientEntry entry, int position,
+            AdapterType type, String constraint, StateListDrawable deleteDrawable) {
         // Default to show all the information
         String displayName = entry.getDisplayName();
         String destination = entry.getDestination();
         boolean showImage = true;
         CharSequence destinationType = getDestinationType(entry);
-
-        // If we don't have name but have destination, show destination as the main entry.
-        if (displayName == null && destination != null) {
-            displayName = destination;
-            destination = null;
-        }
 
         final View itemView = reuseOrInflateView(convertView, parent, type);
 
@@ -108,6 +129,7 @@ public class DropdownChipLayouter {
         bindTextToView(destination, viewHolder.destinationView);
         bindTextToView(destinationType, viewHolder.destinationTypeView);
         bindIconToView(showImage, entry, viewHolder.imageView, type);
+        bindDrawableToDeleteView(deleteDrawable, viewHolder.deleteView);
 
         return itemView;
     }
@@ -193,6 +215,27 @@ public class DropdownChipLayouter {
         }
     }
 
+    protected void bindDrawableToDeleteView(final StateListDrawable drawable, ImageView view) {
+        if (view == null) {
+            return;
+        }
+        if (drawable == null) {
+            view.setVisibility(View.GONE);
+        }
+
+        view.setImageDrawable(drawable);
+        if (mDeleteListener != null) {
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (drawable.getCurrent() != null) {
+                        mDeleteListener.onChipDelete();
+                    }
+                }
+            });
+        }
+    }
+
     protected CharSequence getDestinationType(RecipientEntry entry) {
         return mQuery.getTypeLabel(mContext.getResources(), entry.getDestinationType(),
             entry.getDestinationLabel()).toString().toUpperCase();
@@ -238,7 +281,7 @@ public class DropdownChipLayouter {
      * Returns a resource ID representing an image which should be shown when ther's no relevant
      * photo is available.
      */
-    protected int getDefaultPhotoResId() {
+    protected @DrawableRes int getDefaultPhotoResId() {
         return R.drawable.ic_contact_picture;
     }
 
@@ -246,7 +289,7 @@ public class DropdownChipLayouter {
      * Returns an id for TextView in an item View for showing a display name. By default
      * {@link android.R.id#title} is returned.
      */
-    protected int getDisplayNameResId() {
+    protected @IdRes int getDisplayNameResId() {
         return android.R.id.title;
     }
 
@@ -255,7 +298,7 @@ public class DropdownChipLayouter {
      * (an email address or a phone number).
      * By default {@link android.R.id#text1} is returned.
      */
-    protected int getDestinationResId() {
+    protected @IdRes int getDestinationResId() {
         return android.R.id.text1;
     }
 
@@ -263,7 +306,7 @@ public class DropdownChipLayouter {
      * Returns an id for TextView in an item View for showing the type of the destination.
      * By default {@link android.R.id#text2} is returned.
      */
-    protected int getDestinationTypeResId() {
+    protected @IdRes int getDestinationTypeResId() {
         return android.R.id.text2;
     }
 
@@ -271,9 +314,15 @@ public class DropdownChipLayouter {
      * Returns an id for ImageView in an item View for showing photo image for a person. In default
      * {@link android.R.id#icon} is returned.
      */
-    protected int getPhotoResId() {
+    protected @IdRes int getPhotoResId() {
         return android.R.id.icon;
     }
+
+    /**
+     * Returns an id for ImageView in an item View for showing the delete button. In default
+     * {@link android.R.id#icon1} is returned.
+     */
+    protected @IdRes int getDeleteResId() { return android.R.id.icon1; }
 
     /**
      * A holder class the view. Uses the getters in DropdownChipLayouter to find the id of the
@@ -284,12 +333,14 @@ public class DropdownChipLayouter {
         public final TextView destinationView;
         public final TextView destinationTypeView;
         public final ImageView imageView;
+        public final ImageView deleteView;
 
         public ViewHolder(View view) {
             displayNameView = (TextView) view.findViewById(getDisplayNameResId());
             destinationView = (TextView) view.findViewById(getDestinationResId());
             destinationTypeView = (TextView) view.findViewById(getDestinationTypeResId());
             imageView = (ImageView) view.findViewById(getPhotoResId());
+            deleteView = (ImageView) view.findViewById(getDeleteResId());
         }
     }
 }
