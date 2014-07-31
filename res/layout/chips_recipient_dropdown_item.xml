@@ -14,7 +14,7 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="@dimen/chip_dropdown_height"
     android:background="@drawable/chips_dropdown_background"
@@ -22,8 +22,18 @@
 
     <com.android.ex.chips.CircularImageView style="@style/ChipStartIconStyle" />
 
-    <TextView style="@style/ChipTitleStartIconStyle" />
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-    <TextView style="@style/ChipSubtitleStartIconStyle" />
+        <TextView style="@style/ChipTitleStyle" />
 
-</RelativeLayout>
+        <TextView style="@style/ChipSubtitleStyle" />
+
+    </LinearLayout>
+
+    <com.android.ex.chips.CircularImageView style="@style/ChipDeleteIconStyle" />
+
+</LinearLayout>

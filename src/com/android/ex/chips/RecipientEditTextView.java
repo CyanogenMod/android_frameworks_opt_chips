@@ -40,6 +40,7 @@ import android.graphics.RectF;
 import android.graphics.Shader.TileMode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
@@ -110,7 +111,7 @@ import java.util.regex.Pattern;
 public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         OnItemClickListener, Callback, RecipientAlternatesAdapter.OnCheckedItemChangedListener,
         GestureDetector.OnGestureListener, OnDismissListener, OnClickListener,
-        TextView.OnEditorActionListener {
+        TextView.OnEditorActionListener, DropdownChipLayouter.ChipDeleteListener {
 
     private static final char COMMIT_CHAR_COMMA = ',';
 
@@ -329,7 +330,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         mGestureDetector = new GestureDetector(context, this);
         setOnEditorActionListener(this);
 
-        setDropdownChipLayouter(new DropdownChipLayouter(LayoutInflater.from(context), context));
+        setDropdownChipLayouter(new DropdownChipLayouter(LayoutInflater.from(context), context,
+                this));
     }
 
     private int calculateTextHeight() {
@@ -640,12 +642,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 mChipBackgroundPressed);
 
         if (bitmapContainer.loadIcon) {
-            if (mDisableDelete) {
-                // Show the avatar instead if we don't want to delete
-                loadAvatarIcon(contact, bitmapContainer, paint);
-            } else {
-                drawIcon(bitmapContainer, ((BitmapDrawable) mChipDelete).getBitmap(), paint);
-            }
+            loadAvatarIcon(contact, bitmapContainer, paint);
         }
 
         return bitmapContainer.bitmap;
@@ -1745,12 +1742,21 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private ListAdapter createAlternatesAdapter(DrawableRecipientChip chip) {
         return new RecipientAlternatesAdapter(getContext(), chip.getContactId(),
                 chip.getDirectoryId(), chip.getLookupKey(), chip.getDataId(),
-                getAdapter().getQueryType(), this, mDropdownChipLayouter);
+                getAdapter().getQueryType(), this, mDropdownChipLayouter,
+                constructStateListDeleteDrawable());
     }
 
     private ListAdapter createSingleAddressAdapter(DrawableRecipientChip currentChip) {
         return new SingleRecipientArrayAdapter(getContext(), currentChip.getEntry(),
-                mDropdownChipLayouter);
+                mDropdownChipLayouter, constructStateListDeleteDrawable());
+    }
+
+    private StateListDrawable constructStateListDeleteDrawable() {
+        // Construct the StateListDrawable from deleteDrawable
+        StateListDrawable deleteDrawable = new StateListDrawable();
+        deleteDrawable.addState(new int[] { android.R.attr.state_activated }, mChipDelete);
+        deleteDrawable.addState(new int[0], null);
+        return deleteDrawable;
     }
 
     @Override
@@ -1873,14 +1879,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     }
 
     private CharSequence createChip(RecipientEntry entry, boolean pressed) {
-        String displayText = createAddressText(entry);
+        final String displayText = createAddressText(entry);
         if (TextUtils.isEmpty(displayText)) {
             return null;
         }
-        SpannableString chipText = null;
         // Always leave a blank space at the end of a chip.
-        int textLength = displayText.length() - 1;
-        chipText = new SpannableString(displayText);
+        final int textLength = displayText.length() - 1;
+        final SpannableString  chipText = new SpannableString(displayText);
         if (!mNoChips) {
             try {
                 DrawableRecipientChip chip = constructChipSpan(entry, pressed);
@@ -2331,6 +2336,15 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return chip.isSelected() &&
                 ((mAvatarPosition == AVATAR_POSITION_END && offset == getChipEnd(chip)) ||
                 (mAvatarPosition != AVATAR_POSITION_END && offset == getChipStart(chip)));
+    }
+
+    @Override
+    public void onChipDelete() {
+        if (mSelectedChip != null) {
+            removeChip(mSelectedChip);
+            mAddressPopup.dismiss();
+            mAlternatesPopup.dismiss();
+        }
     }
 
     /**

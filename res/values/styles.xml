@@ -39,44 +39,26 @@
         <item name="android:paddingBottom">@dimen/chip_wrapper_bottom_padding</item>
     </style>
 
-    <style name="ChipTitleBaseStyle">
+    <style name="ChipTitleStyle">
         <item name="android:id">@android:id/title</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_gravity">center_vertical</item>
         <item name="android:ellipsize">middle</item>
-        <item name="android:paddingTop">1dp</item>
         <item name="android:singleLine">true</item>
         <item name="android:textColor">@color/chips_dropdown_title_text</item>
         <item name="android:textSize">16sp</item>
     </style>
 
-    <style name="ChipTitleStartIconStyle" parent="@style/ChipTitleBaseStyle">
-        <item name="android:layout_toRightOf">@android:id/icon</item>
-    </style>
-
-    <style name="ChipTitleEndIconStyle" parent="@style/ChipTitleBaseStyle">
-        <item name="android:layout_toLeftOf">@android:id/icon</item>
-    </style>
-
-    <style name="ChipSubtitleBaseStyle">
+    <style name="ChipSubtitleStyle">
         <item name="android:id">@android:id/text1</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_alignParentBottom">true</item>
+        <item name="android:layout_gravity">center_vertical</item>
         <item name="android:ellipsize">middle</item>
-        <item name="android:paddingBottom">1dp</item>
         <item name="android:singleLine">true</item>
         <item name="android:textColor">@color/chips_dropdown_subtitle_text</item>
         <item name="android:textSize">14sp</item>
-    </style>
-
-    <style name="ChipSubtitleStartIconStyle" parent="@style/ChipSubtitleBaseStyle">
-        <item name="android:layout_toRightOf">@android:id/icon</item>
-    </style>
-
-    <style name="ChipSubtitleEndIconStyle" parent="@style/ChipSubtitleBaseStyle">
-        <item name="android:layout_toLeftOf">@android:id/icon</item>
     </style>
 
     <style name="ChipIconBaseStyle">
@@ -88,11 +70,21 @@
 
     <style name="ChipStartIconStyle" parent="@style/ChipIconBaseStyle">
         <item name="android:layout_marginRight">@dimen/chip_icon_margin_end</item>
-        <item name="android:layout_alignParentLeft">true</item>
     </style>
 
     <style name="ChipEndIconStyle" parent="@style/ChipIconBaseStyle">
         <item name="android:layout_marginLeft">@dimen/chip_icon_margin_end</item>
-        <item name="android:layout_alignParentRight">true</item>
+    </style>
+
+    <style name="ChipDeleteIconBaseStyle">
+        <item name="android:id">@android:id/icon1</item>
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+    </style>
+
+    <style name="ChipDeleteIconStyle" parent="@style/ChipDeleteIconBaseStyle">
+        <item name="android:paddingLeft">20dp</item>
     </style>
 </resources>

@@ -21,6 +21,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
@@ -63,6 +64,7 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
     public static final int QUERY_TYPE_PHONE = 1;
     private final Long mDirectoryId;
     private DropdownChipLayouter mDropdownChipLayouter;
+    private final StateListDrawable mDeleteDrawable;
 
     private static final Map<String, String> sCorrectedPhotoUris = new HashMap<String, String>();
 
@@ -359,6 +361,13 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
     public RecipientAlternatesAdapter(Context context, long contactId, Long directoryId,
             String lookupKey, long currentId, int queryMode, OnCheckedItemChangedListener listener,
             DropdownChipLayouter dropdownChipLayouter) {
+        this(context, contactId, directoryId, lookupKey, currentId, queryMode, listener,
+                dropdownChipLayouter, null);
+    }
+
+    public RecipientAlternatesAdapter(Context context, long contactId, Long directoryId,
+            String lookupKey, long currentId, int queryMode, OnCheckedItemChangedListener listener,
+            DropdownChipLayouter dropdownChipLayouter, StateListDrawable deleteDrawable) {
         super(context,
                 getCursorForConstruction(context, contactId, directoryId, lookupKey, queryMode), 0);
         mCurrentId = currentId;
@@ -366,6 +375,7 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
         mCheckedItemChangedListener = listener;
 
         mDropdownChipLayouter = dropdownChipLayouter;
+        mDeleteDrawable = deleteDrawable;
     }
 
     private static Cursor getCursorForConstruction(Context context, long contactId,
@@ -586,7 +596,7 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
         RecipientEntry entry = getRecipientEntry(position);
 
         mDropdownChipLayouter.bindView(view, null, entry, position,
-                AdapterType.RECIPIENT_ALTERNATES, null);
+                AdapterType.RECIPIENT_ALTERNATES, null, mDeleteDrawable);
     }
 
     @Override
