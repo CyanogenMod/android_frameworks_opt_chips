@@ -20,4 +20,6 @@
     <color name="chips_dropdown_background_activated">#4285f4</color>
     <color name="chips_dropdown_background_pressed">#ededed</color>
 
+    <color name="autocomplete_divider_color">#cccccc</color>
+
 </resources>
