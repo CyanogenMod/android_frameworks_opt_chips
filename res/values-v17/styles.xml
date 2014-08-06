@@ -21,6 +21,13 @@
         <item name="android:paddingBottom">@dimen/chip_wrapper_bottom_padding</item>
     </style>
 
+    <style name="ChipAutocompleteDividerStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1px</item>
+        <item name="android:background">@color/autocomplete_divider_color</item>
+        <item name="android:layout_marginStart">@dimen/chip_wrapper_start_padding</item>
+    </style>
+
     <style name="ChipStartIconStyle" parent="@style/ChipIconBaseStyle">
         <item name="android:layout_marginEnd">@dimen/chip_icon_margin_end</item>
     </style>

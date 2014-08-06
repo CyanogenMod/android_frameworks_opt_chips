@@ -112,6 +112,11 @@ public class DropdownChipLayouter {
                     displayName = null;
                     showImage = false;
                 }
+
+                // For BASE_RECIPIENT set all top dividers except for the first one to be GONE.
+                if (viewHolder.topDivider != null) {
+                    viewHolder.topDivider.setVisibility(position == 0 ? View.VISIBLE : View.GONE);
+                }
                 break;
             case RECIPIENT_ALTERNATES:
                 if (position != 0) {
@@ -334,6 +339,7 @@ public class DropdownChipLayouter {
         public final TextView destinationTypeView;
         public final ImageView imageView;
         public final ImageView deleteView;
+        public final View topDivider;
 
         public ViewHolder(View view) {
             displayNameView = (TextView) view.findViewById(getDisplayNameResId());
@@ -341,6 +347,7 @@ public class DropdownChipLayouter {
             destinationTypeView = (TextView) view.findViewById(getDestinationTypeResId());
             imageView = (ImageView) view.findViewById(getPhotoResId());
             deleteView = (ImageView) view.findViewById(getDeleteResId());
+            topDivider = view.findViewById(R.id.chip_autocomplete_top_divider);
         }
     }
 }
