@@ -39,6 +39,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader.TileMode;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.os.AsyncTask;
@@ -639,7 +640,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private Bitmap createSelectedChip(RecipientEntry contact, TextPaint paint) {
         paint.setColor(sSelectedTextColor);
         final ChipBitmapContainer bitmapContainer = createChipBitmap(contact, paint,
-                mChipBackgroundPressed);
+                mChipBackgroundPressed, getResources().getColor(R.color.chip_background_selected));
 
         if (bitmapContainer.loadIcon) {
             loadAvatarIcon(contact, bitmapContainer, paint);
@@ -655,9 +656,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * @param paint The paint to use to draw the bitmap.
      */
     private Bitmap createUnselectedChip(RecipientEntry contact, TextPaint paint) {
-        Drawable background = getChipBackground(contact);
         paint.setColor(getContext().getResources().getColor(android.R.color.black));
-        ChipBitmapContainer bitmapContainer = createChipBitmap(contact, paint, background);
+        ChipBitmapContainer bitmapContainer = createChipBitmap(contact, paint,
+                getChipBackground(contact), getDefaultChipBackgroundColor(contact));
 
         if (bitmapContainer.loadIcon) {
             loadAvatarIcon(contact, bitmapContainer, paint);
@@ -666,46 +667,53 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     }
 
     private ChipBitmapContainer createChipBitmap(RecipientEntry contact, TextPaint paint,
-            Drawable background) {
+            Drawable overrideBackgroundDrawable, int backgroundColor) {
         final ChipBitmapContainer result = new ChipBitmapContainer();
 
-        if (background == null) {
-            Log.w(TAG, "Unable to draw a background for the chip as it was never set");
-            result.bitmap = Bitmap.createBitmap(
-                    (int) mChipHeight * 2, (int) mChipHeight, Bitmap.Config.ARGB_8888);
-            result.loadIcon = false;
-            return result;
-        }
-
         Rect backgroundPadding = new Rect();
-        background.getPadding(backgroundPadding);
+        if (overrideBackgroundDrawable != null) {
+            overrideBackgroundDrawable.getPadding(backgroundPadding);
+        }
 
         // Ellipsize the text so that it takes AT MOST the entire width of the
         // autocomplete text entry area. Make sure to leave space for padding
         // on the sides.
         int height = (int) mChipHeight;
         // Since the icon is a square, it's width is equal to the maximum height it can be inside
-        // the chip.
-        int iconWidth = height - backgroundPadding.top - backgroundPadding.bottom;
+        // the chip. Don't include iconWidth for invalid contacts.
+        int iconWidth = contact.isValid() ?
+                height - backgroundPadding.top - backgroundPadding.bottom : 0;
         float[] widths = new float[1];
         paint.getTextWidths(" ", widths);
         CharSequence ellipsizedText = ellipsizeText(createChipDisplayText(contact), paint,
                 calculateAvailableWidth() - iconWidth - widths[0] - backgroundPadding.left
-                    - backgroundPadding.right);;
+                - backgroundPadding.right);
         int textWidth = (int) paint.measureText(ellipsizedText, 0, ellipsizedText.length());
 
+        // Chip start padding is the same as the end padding if there is no contact image.
+        final int startPadding = contact.isValid() ? mChipTextStartPadding : mChipTextEndPadding;
         // Make sure there is a minimum chip width so the user can ALWAYS
         // tap a chip without difficulty.
-        int width = Math.max(iconWidth * 2, textWidth + mChipTextStartPadding + mChipTextEndPadding
+        int width = Math.max(iconWidth * 2, textWidth + startPadding + mChipTextEndPadding
                 + iconWidth + backgroundPadding.left + backgroundPadding.right);
 
         // Create the background of the chip.
         result.bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         final Canvas canvas = new Canvas(result.bitmap);
 
-        // Draw the background drawable
-        background.setBounds(0, 0, width, height);
-        background.draw(canvas);
+        // Check if the background drawable is set via attr
+        if (overrideBackgroundDrawable != null) {
+            overrideBackgroundDrawable.setBounds(0, 0, width, height);
+            overrideBackgroundDrawable.draw(canvas);
+        } else {
+            // Draw the default chip background
+            final Paint backgroundPaint = new Paint();
+            backgroundPaint.setColor(backgroundColor);
+            final float radius = height / 2;
+            canvas.drawRoundRect(new RectF(0, 0, width, height), radius, radius,
+                    backgroundPaint);
+        }
+
         // Draw the text vertically aligned
         int textX = shouldPositionAvatarOnRight() ?
                 mChipTextEndPadding + backgroundPadding.left :
@@ -824,6 +832,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return contact.isValid() ? mChipBackground : mInvalidChipBackground;
     }
 
+    private int getDefaultChipBackgroundColor(RecipientEntry contact) {
+        return getResources().getColor(contact.isValid() ? R.color.chip_background :
+                R.color.chip_background_invalid);
+    }
+
     /**
      * Given a height, returns a Y offset that will draw the text in the middle of the height.
      */
@@ -865,13 +878,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         paint.reset();
     }
 
-    private DrawableRecipientChip constructChipSpan(RecipientEntry contact, boolean pressed)
-            throws NullPointerException {
-        if (mChipBackground == null) {
-            throw new NullPointerException(
-                    "Unable to render any chips as setChipDimensions was not called.");
-        }
-
+    private DrawableRecipientChip constructChipSpan(RecipientEntry contact, boolean pressed) {
         TextPaint paint = getPaint();
         float defaultSize = paint.getTextSize();
         int defaultColor = paint.getColor();
@@ -944,14 +951,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         Resources r = getContext().getResources();
 
         mChipBackground = a.getDrawable(R.styleable.RecipientEditTextView_chipBackground);
-        if (mChipBackground == null) {
-            mChipBackground = r.getDrawable(R.drawable.chip_background);
-        }
         mChipBackgroundPressed = a
                 .getDrawable(R.styleable.RecipientEditTextView_chipBackgroundPressed);
-        if (mChipBackgroundPressed == null) {
-            mChipBackgroundPressed = r.getDrawable(R.drawable.chip_background_selected);
-        }
+        mInvalidChipBackground = a
+                .getDrawable(R.styleable.RecipientEditTextView_invalidChipBackground);
         mChipDelete = a.getDrawable(R.styleable.RecipientEditTextView_chipDelete);
         if (mChipDelete == null) {
             mChipDelete = r.getDrawable(R.drawable.chip_delete);
@@ -984,11 +987,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         mChipFontSize = a.getDimensionPixelSize(R.styleable.RecipientEditTextView_chipFontSize, -1);
         if (mChipFontSize == -1) {
             mChipFontSize = r.getDimension(R.dimen.chip_text_size);
-        }
-        mInvalidChipBackground = a
-                .getDrawable(R.styleable.RecipientEditTextView_invalidChipBackground);
-        if (mInvalidChipBackground == null) {
-            mInvalidChipBackground = r.getDrawable(R.drawable.chip_background_invalid);
         }
         mAvatarPosition =
                 a.getInt(R.styleable.RecipientEditTextView_avatarPosition, AVATAR_POSITION_START);
