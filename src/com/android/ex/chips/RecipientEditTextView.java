@@ -331,8 +331,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         mGestureDetector = new GestureDetector(context, this);
         setOnEditorActionListener(this);
 
-        setDropdownChipLayouter(new DropdownChipLayouter(LayoutInflater.from(context), context,
-                this));
+        setDropdownChipLayouter(new DropdownChipLayouter(LayoutInflater.from(context), context));
     }
 
     private int calculateTextHeight() {
@@ -352,6 +351,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     public void setDropdownChipLayouter(DropdownChipLayouter dropdownChipLayouter) {
         mDropdownChipLayouter = dropdownChipLayouter;
+        mDropdownChipLayouter.setDeleteListener(this);
     }
 
     public void setRecipientEntryItemClickedListener(RecipientEntryItemClickedListener listener) {
