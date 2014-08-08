@@ -1701,7 +1701,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     }
 
     private void showAlternates(final DrawableRecipientChip currentChip,
-            final ListPopupWindow alternatesPopup, final int width) {
+            final ListPopupWindow alternatesPopup) {
         new AsyncTask<Void, Void, ListAdapter>() {
             @Override
             protected ListAdapter doInBackground(final Void... params) {
@@ -1718,7 +1718,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
                 // Align the alternates popup with the left side of the View,
                 // regardless of the position of the chip tapped.
-                alternatesPopup.setWidth(width);
                 alternatesPopup.setAnchorView((mAlternatePopupAnchor != null) ?
                         mAlternatePopupAnchor : RecipientEditTextView.this);
                 alternatesPopup.setVerticalOffset(bottomOffset);
@@ -2243,9 +2242,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 scrollLineIntoView(getLayout().getLineForOffset(getChipStart(newChip)));
             }
             if (showAddress) {
-                showAddress(newChip, mAddressPopup, getWidth());
+                showAddress(newChip, mAddressPopup);
             } else {
-                showAlternates(newChip, mAlternatesPopup, getWidth());
+                showAlternates(newChip, mAlternatesPopup);
             }
             setCursorVisible(false);
             return newChip;
@@ -2258,8 +2257,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 || (!isPhoneQuery() && contactId == RecipientEntry.GENERATED_CONTACT);
     }
 
-    private void showAddress(final DrawableRecipientChip currentChip, final ListPopupWindow popup,
-            int width) {
+    private void showAddress(final DrawableRecipientChip currentChip, final ListPopupWindow popup) {
         if (!mAttachedToWindow) {
             return;
         }
@@ -2267,7 +2265,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         int bottomOffset = calculateOffsetFromBottomToTop(line);
         // Align the alternates popup with the left side of the View,
         // regardless of the position of the chip tapped.
-        popup.setWidth(width);
         popup.setAnchorView((mAlternatePopupAnchor != null) ? mAlternatePopupAnchor : this);
         popup.setVerticalOffset(bottomOffset);
         popup.setAdapter(createSingleAddressAdapter(currentChip));
