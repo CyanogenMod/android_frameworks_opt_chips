@@ -171,6 +171,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private static final int IMAGE_SPAN_ALIGNMENT_BASELINE = 1;
 
 
+    private Paint mWorkPaint = new Paint();
+
     private boolean mDisableDelete;
 
     private Tokenizer mTokenizer;
@@ -645,7 +647,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 mChipBackgroundPressed, getResources().getColor(R.color.chip_background_selected));
 
         if (bitmapContainer.loadIcon) {
-            loadAvatarIcon(contact, bitmapContainer, paint);
+            loadAvatarIcon(contact, bitmapContainer);
         }
 
         return bitmapContainer.bitmap;
@@ -663,7 +665,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 getChipBackground(contact), getDefaultChipBackgroundColor(contact));
 
         if (bitmapContainer.loadIcon) {
-            loadAvatarIcon(contact, bitmapContainer, paint);
+            loadAvatarIcon(contact, bitmapContainer);
         }
         return bitmapContainer.bitmap;
     }
@@ -737,12 +739,12 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     /**
      * Helper function that draws the loaded icon bitmap into the chips bitmap
      */
-    private void drawIcon(ChipBitmapContainer bitMapResult, Bitmap icon, Paint paint) {
+    private void drawIcon(ChipBitmapContainer bitMapResult, Bitmap icon) {
         final Canvas canvas = new Canvas(bitMapResult.bitmap);
         final RectF src = new RectF(0, 0, icon.getWidth(), icon.getHeight());
         final RectF dst = new RectF(bitMapResult.left, bitMapResult.top, bitMapResult.right,
                 bitMapResult.bottom);
-        drawIconOnCanvas(icon, canvas, paint, src, dst);
+        drawIconOnCanvas(icon, canvas, src, dst);
     }
 
     /**
@@ -763,7 +765,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * draw an icon for this recipient.
      */
     private void loadAvatarIcon(final RecipientEntry contact,
-            final ChipBitmapContainer bitmapContainer, final Paint paint) {
+            final ChipBitmapContainer bitmapContainer) {
         // Don't draw photos for recipients that have been typed in OR generated on the fly.
         long contactId = contact.getContactId();
         boolean drawPhotos = isPhoneQuery() ?
@@ -800,7 +802,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                     }
 
                     private void tryDrawAndInvalidate(Bitmap icon) {
-                        drawIcon(bitmapContainer, icon, paint);
+                        drawIcon(bitmapContainer, icon);
                         // The caller might originated from a background task. However, if the
                         // background task has already completed, the view might be already drawn
                         // on the UI but the callback would happen on the background thread.
@@ -821,7 +823,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             } else {
                 final Bitmap icon = BitmapFactory.decodeByteArray(origPhotoBytes, 0,
                         origPhotoBytes.length);
-                drawIcon(bitmapContainer, icon, paint);
+                drawIcon(bitmapContainer, icon);
             }
         }
     }
@@ -850,7 +852,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * Draws the icon onto the canvas given the source rectangle of the bitmap and the destination
      * rectangle of the canvas.
      */
-    protected void drawIconOnCanvas(Bitmap icon, Canvas canvas, Paint paint, RectF src, RectF dst) {
+    protected void drawIconOnCanvas(Bitmap icon, Canvas canvas, RectF src, RectF dst) {
         final Matrix matrix = new Matrix();
 
         // Draw bitmap through shader first.
@@ -861,23 +863,23 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         matrix.setRectToRect(src, dst, Matrix.ScaleToFit.FILL);
 
         shader.setLocalMatrix(matrix);
-        paint.reset();
-        paint.setShader(shader);
-        paint.setAntiAlias(true);
-        paint.setFilterBitmap(true);
-        paint.setDither(true);
-        canvas.drawCircle(dst.centerX(), dst.centerY(), dst.width() / 2f, paint);
+        mWorkPaint.reset();
+        mWorkPaint.setShader(shader);
+        mWorkPaint.setAntiAlias(true);
+        mWorkPaint.setFilterBitmap(true);
+        mWorkPaint.setDither(true);
+        canvas.drawCircle(dst.centerX(), dst.centerY(), dst.width() / 2f, mWorkPaint);
 
         // Then draw the border.
         final float borderWidth = 1f;
-        paint.reset();
-        paint.setColor(Color.TRANSPARENT);
-        paint.setStyle(Style.STROKE);
-        paint.setStrokeWidth(borderWidth);
-        paint.setAntiAlias(true);
-        canvas.drawCircle(dst.centerX(), dst.centerY(), dst.width() / 2f - borderWidth / 2, paint);
+        mWorkPaint.reset();
+        mWorkPaint.setColor(Color.TRANSPARENT);
+        mWorkPaint.setStyle(Style.STROKE);
+        mWorkPaint.setStrokeWidth(borderWidth);
+        mWorkPaint.setAntiAlias(true);
+        canvas.drawCircle(dst.centerX(), dst.centerY(), dst.width() / 2f - borderWidth / 2, mWorkPaint);
 
-        paint.reset();
+        mWorkPaint.reset();
     }
 
     private DrawableRecipientChip constructChipSpan(RecipientEntry contact, boolean pressed) {
