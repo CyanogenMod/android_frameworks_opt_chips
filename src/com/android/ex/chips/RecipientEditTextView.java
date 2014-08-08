@@ -198,6 +198,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     private ListPopupWindow mAddressPopup;
 
+    private View mAlternatePopupAnchor;
+
     // VisibleForTesting
     ArrayList<DrawableRecipientChip> mTemporaryRecipients;
 
@@ -1715,7 +1717,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 // Align the alternates popup with the left side of the View,
                 // regardless of the position of the chip tapped.
                 alternatesPopup.setWidth(width);
-                alternatesPopup.setAnchorView(RecipientEditTextView.this);
+                alternatesPopup.setAnchorView((mAlternatePopupAnchor != null) ?
+                        mAlternatePopupAnchor : RecipientEditTextView.this);
                 alternatesPopup.setVerticalOffset(bottomOffset);
                 alternatesPopup.setAdapter(result);
                 alternatesPopup.setOnItemClickListener(mAlternatesListener);
@@ -2263,7 +2266,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         // Align the alternates popup with the left side of the View,
         // regardless of the position of the chip tapped.
         popup.setWidth(width);
-        popup.setAnchorView(this);
+        popup.setAnchorView((mAlternatePopupAnchor != null) ? mAlternatePopupAnchor : this);
         popup.setVerticalOffset(bottomOffset);
         popup.setAdapter(createSingleAddressAdapter(currentChip));
         popup.setOnItemClickListener(new OnItemClickListener() {
@@ -3150,6 +3153,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 removeChip(recipient);
             }
         }
+    }
+
+    public void setAlternatePopupAnchor(View v) {
+        mAlternatePopupAnchor = v;
     }
 
     private static class ChipBitmapContainer {
