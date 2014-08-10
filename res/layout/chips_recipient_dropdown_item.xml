@@ -18,7 +18,7 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/chip_dropdown_height"
     android:background="@drawable/chips_dropdown_background"
-    android:padding="16dp">
+    android:padding="12dp">
 
     <com.android.ex.chips.CircularImageView style="@style/ChipStartIconStyle" />
 
@@ -30,6 +30,6 @@
 
     </LinearLayout>
 
-    <com.android.ex.chips.CircularImageView style="@style/ChipDeleteIconStyle" />
+    <ImageView style="@style/ChipDeleteIconStyle" />
 
 </LinearLayout>

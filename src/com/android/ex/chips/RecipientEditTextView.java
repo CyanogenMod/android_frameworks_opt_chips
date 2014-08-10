@@ -113,20 +113,23 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         OnItemClickListener, Callback, RecipientAlternatesAdapter.OnCheckedItemChangedListener,
         GestureDetector.OnGestureListener, OnDismissListener, OnClickListener,
         TextView.OnEditorActionListener, DropdownChipLayouter.ChipDeleteListener {
+    private static final String TAG = "RecipientEditTextView";
 
     private static final char COMMIT_CHAR_COMMA = ',';
-
     private static final char COMMIT_CHAR_SEMICOLON = ';';
-
     private static final char COMMIT_CHAR_SPACE = ' ';
-
     private static final String SEPARATOR = String.valueOf(COMMIT_CHAR_COMMA)
             + String.valueOf(COMMIT_CHAR_SPACE);
 
-    private static final String TAG = "RecipientEditTextView";
+    // This pattern comes from android.util.Patterns. It has been tweaked to handle a "1" before
+    // parens, so numbers such as "1 (425) 222-2342" match.
+    private static final Pattern PHONE_PATTERN
+            = Pattern.compile(                                  // sdd = space, dot, or dash
+            "(\\+[0-9]+[\\- \\.]*)?"                    // +<digits><sdd>*
+                    + "(1?[ ]*\\([0-9]+\\)[\\- \\.]*)?"         // 1(<digits>)<sdd>*
+                    + "([0-9][0-9\\- \\.][0-9\\- \\.]+[0-9])"); // <digit><digit|sdd>+<digit>
 
     private static final int DISMISS = "dismiss".hashCode();
-
     private static final long DISMISS_DELAY = 300;
 
     // TODO: get correct number/ algorithm from with UX.
@@ -136,6 +139,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private static final int MAX_CHIPS_PARSED = 50;
 
     private static int sSelectedTextColor = -1;
+    private static int sExcessTopPadding = -1;
 
     // Resources for displaying chips.
     private Drawable mChipBackground = null;
@@ -143,21 +147,23 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private Drawable mInvalidChipBackground;
     private Drawable mChipBackgroundPressed;
 
+    // Possible attr overrides
     private float mChipHeight;
     private float mChipFontSize;
     private float mLineSpacingExtra;
     private int mChipTextStartPadding;
     private int mChipTextEndPadding;
     private final int mTextHeight;
+    private boolean mDisableDelete;
+    private int mMaxLines;
+    private int mActionBarHeight;
 
     /**
      * Enumerator for avatar position. See attr.xml for more details.
      * 0 for end, 1 for start.
      */
     private int mAvatarPosition;
-
     private static final int AVATAR_POSITION_END = 0;
-
     private static final int AVATAR_POSITION_START = 1;
 
     /**
@@ -165,82 +171,53 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * 0 for bottom, 1 for baseline.
      */
     private int mImageSpanAlignment;
-
     private static final int IMAGE_SPAN_ALIGNMENT_BOTTOM = 0;
-
     private static final int IMAGE_SPAN_ALIGNMENT_BASELINE = 1;
-
 
     private Paint mWorkPaint = new Paint();
 
-    private boolean mDisableDelete;
-
     private Tokenizer mTokenizer;
-
     private Validator mValidator;
+    private Handler mHandler;
+    private TextWatcher mTextWatcher;
+    private DropdownChipLayouter mDropdownChipLayouter;
+
+    private ListPopupWindow mAlternatesPopup;
+    private ListPopupWindow mAddressPopup;
+    private View mAlternatePopupAnchor;
+    private OnItemClickListener mAlternatesListener;
 
     private DrawableRecipientChip mSelectedChip;
-
     private Bitmap mDefaultContactPhoto;
-
     private ImageSpan mMoreChip;
-
     private TextView mMoreItem;
 
     // VisibleForTesting
     final ArrayList<String> mPendingChips = new ArrayList<String>();
 
-    private Handler mHandler;
 
     private int mPendingChipsCount = 0;
-
+    private int mCheckedItem;
     private boolean mNoChips = false;
-
-    private ListPopupWindow mAlternatesPopup;
-
-    private ListPopupWindow mAddressPopup;
-
-    private View mAlternatePopupAnchor;
+    private boolean mShouldShrink = true;
 
     // VisibleForTesting
     ArrayList<DrawableRecipientChip> mTemporaryRecipients;
 
     private ArrayList<DrawableRecipientChip> mRemovedSpans;
 
-    private boolean mShouldShrink = true;
-
     // Chip copy fields.
     private GestureDetector mGestureDetector;
-
     private Dialog mCopyDialog;
-
     private String mCopyAddress;
-
-    /**
-     * Used with {@link #mAlternatesPopup}. Handles clicks to alternate addresses for a
-     * selected chip.
-     */
-    private OnItemClickListener mAlternatesListener;
-
-    private int mCheckedItem;
-
-    private TextWatcher mTextWatcher;
 
     // Obtain the enclosing scroll view, if it exists, so that the view can be
     // scrolled to show the last line of chips content.
     private ScrollView mScrollView;
-
     private boolean mTriedGettingScrollView;
-
     private boolean mDragEnabled = false;
 
-    // This pattern comes from android.util.Patterns. It has been tweaked to handle a "1" before
-    // parens, so numbers such as "1 (425) 222-2342" match.
-    private static final Pattern PHONE_PATTERN
-        = Pattern.compile(                                  // sdd = space, dot, or dash
-                "(\\+[0-9]+[\\- \\.]*)?"                    // +<digits><sdd>*
-                + "(1?[ ]*\\([0-9]+\\)[\\- \\.]*)?"         // 1(<digits>)<sdd>*
-                + "([0-9][0-9\\- \\.][0-9\\- \\.]+[0-9])"); // <digit><digit|sdd>+<digit>
+    private boolean mAttachedToWindow;
 
     private final Runnable mAddTextWatcher = new Runnable() {
         @Override
@@ -272,16 +249,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     };
 
-    private int mMaxLines;
-
-    private static int sExcessTopPadding = -1;
-
-    private int mActionBarHeight;
-
-    private boolean mAttachedToWindow;
-
-    private DropdownChipLayouter mDropdownChipLayouter;
-
     private RecipientEntryItemClickedListener mRecipientEntryItemClickedListener;
 
     public interface RecipientEntryItemClickedListener {
@@ -302,7 +269,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             sSelectedTextColor = context.getResources().getColor(android.R.color.white);
         }
         mAlternatesPopup = new ListPopupWindow(context);
+        mAlternatesPopup.setBackgroundDrawable(null);
         mAddressPopup = new ListPopupWindow(context);
+        mAddressPopup.setBackgroundDrawable(null);
         mCopyDialog = new Dialog(context);
         mAlternatesListener = new OnItemClickListener() {
             @Override
@@ -961,7 +930,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 .getDrawable(R.styleable.RecipientEditTextView_invalidChipBackground);
         mChipDelete = a.getDrawable(R.styleable.RecipientEditTextView_chipDelete);
         if (mChipDelete == null) {
-            mChipDelete = r.getDrawable(R.drawable.chip_delete);
+            mChipDelete = r.getDrawable(R.drawable.ic_cancel_wht_24dp);
         }
         mChipTextStartPadding = mChipTextEndPadding
                 = a.getDimensionPixelSize(R.styleable.RecipientEditTextView_chipPadding, -1);
@@ -1679,7 +1648,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                         commitDefault();
                         mSelectedChip = selectChip(currentChip);
                     } else {
-                        onClick(mSelectedChip, offset, x, y);
+                        onClick(mSelectedChip);
                     }
                 }
                 chipWasSelected = true;
@@ -1755,7 +1724,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private StateListDrawable constructStateListDeleteDrawable() {
         // Construct the StateListDrawable from deleteDrawable
         StateListDrawable deleteDrawable = new StateListDrawable();
-        deleteDrawable.addState(new int[] { android.R.attr.state_activated }, mChipDelete);
+        if (!mDisableDelete) {
+            deleteDrawable.addState(new int[]{android.R.attr.state_activated}, mChipDelete);
+        }
         deleteDrawable.addState(new int[0], null);
         return deleteDrawable;
     }
@@ -2315,35 +2286,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
     }
 
-    /**
-     * Return whether a touch event was inside the delete target of
-     * a selected chip. It is in the delete target if:
-     * 1) the x and y points of the event are within the
-     * delete assset.
-     * 2) the point tapped would have caused a cursor to appear
-     * right after the selected chip.
-     * @return boolean
-     */
-    private boolean isInDelete(DrawableRecipientChip chip, int offset, float x, float y) {
-        // Figure out the bounds of this chip and whether or not
-        // the user clicked in the X portion.
-        // TODO: Should x and y be used, or removed?
-        if (mDisableDelete) {
-            return false;
-        }
-
-        return chip.isSelected() &&
-                ((mAvatarPosition == AVATAR_POSITION_END && offset == getChipEnd(chip)) ||
-                (mAvatarPosition != AVATAR_POSITION_END && offset == getChipStart(chip)));
-    }
-
     @Override
     public void onChipDelete() {
         if (mSelectedChip != null) {
             removeChip(mSelectedChip);
-            mAddressPopup.dismiss();
-            mAlternatesPopup.dismiss();
         }
+        mAddressPopup.dismiss();
+        mAlternatesPopup.dismiss();
     }
 
     /**
@@ -2417,13 +2366,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * event, see if that event was in the delete icon. If so, delete it.
      * Otherwise, unselect the chip.
      */
-    public void onClick(DrawableRecipientChip chip, int offset, float x, float y) {
+    public void onClick(DrawableRecipientChip chip) {
         if (chip.isSelected()) {
-            if (isInDelete(chip, offset, x, y)) {
-                removeChip(chip);
-            } else {
-                clearSelectedChip();
-            }
+            clearSelectedChip();
         }
     }
 
