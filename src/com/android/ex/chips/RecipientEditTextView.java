@@ -2516,23 +2516,47 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     /**
      * Handles pasting a {@link ClipData} to this {@link RecipientEditTextView}.
      */
-    private void handlePasteClip(ClipData clip) {
+    // Visible for testing.
+    void handlePasteClip(ClipData clip) {
+        if (clip == null) {
+            // Do nothing.
+            return;
+        }
+
+        final ClipDescription clipDesc = clip.getDescription();
+        boolean containsSupportedType = clipDesc.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) ||
+                clipDesc.hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML);
+        if (!containsSupportedType) {
+            return;
+        }
+
         removeTextChangedListener(mTextWatcher);
 
-        if (clip != null && clip.getDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)){
-            for (int i = 0; i < clip.getItemCount(); i++) {
-                CharSequence paste = clip.getItemAt(i).getText();
-                if (paste != null) {
-                    int start = getSelectionStart();
-                    int end = getSelectionEnd();
-                    Editable editable = getText();
-                    if (start >= 0 && end >= 0 && start != end) {
-                        editable.append(paste, start, end);
-                    } else {
-                        editable.insert(end, paste);
-                    }
-                    handlePasteAndReplace();
+        final ClipDescription clipDescription = clip.getDescription();
+        for (int i = 0; i < clip.getItemCount(); i++) {
+            final String mimeType = clipDescription.getMimeType(i);
+            final boolean supportedType = ClipDescription.MIMETYPE_TEXT_PLAIN.equals(mimeType) ||
+                    ClipDescription.MIMETYPE_TEXT_HTML.equals(mimeType);
+            if (!supportedType) {
+                // Only plain text and html can be pasted.
+                continue;
+            }
+
+            final CharSequence pastedItem = clip.getItemAt(i).getText();
+            if (!TextUtils.isEmpty(pastedItem)) {
+                final Editable editable = getText();
+                final int start = getSelectionStart();
+                final int end = getSelectionEnd();
+                if (start < 0 || end < 1) {
+                    // No selection.
+                    editable.append(pastedItem);
+                } else if (start == end) {
+                    // Insert at position.
+                    editable.insert(start, pastedItem);
+                } else {
+                    editable.append(pastedItem, start, end);
                 }
+                handlePasteAndReplace();
             }
         }
 
