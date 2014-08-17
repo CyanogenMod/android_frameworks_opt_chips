@@ -21,7 +21,6 @@
         <item name="android:background">@null</item>
         <item name="android:inputType">textEmailAddress|textMultiLine</item>
         <item name="android:minHeight">@dimen/chip_height</item>
-        <item name="android:lineSpacingExtra">@dimen/line_spacing_extra</item>
         <item name="android:popupBackground">@null</item>
         <item name="android:textAlignment" tools:ignore="NewApi">viewStart</item>
         <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
