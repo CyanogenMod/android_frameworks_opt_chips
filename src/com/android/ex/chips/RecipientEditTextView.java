@@ -39,7 +39,6 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader.TileMode;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.os.AsyncTask;
@@ -59,7 +58,6 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.QwertyKeyListener;
-import android.text.style.ImageSpan;
 import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
 import android.util.AttributeSet;
@@ -93,6 +91,7 @@ import android.widget.TextView;
 import com.android.ex.chips.RecipientAlternatesAdapter.RecipientMatchCallback;
 import com.android.ex.chips.recipientchip.DrawableRecipientChip;
 import com.android.ex.chips.recipientchip.InvisibleRecipientChip;
+import com.android.ex.chips.recipientchip.ReplacementDrawableSpan;
 import com.android.ex.chips.recipientchip.VisibleRecipientChip;
 
 import java.util.ArrayList;
@@ -166,14 +165,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private static final int AVATAR_POSITION_END = 0;
     private static final int AVATAR_POSITION_START = 1;
 
-    /**
-     * Enumerator for image span alignment. See attr.xml for more details.
-     * 0 for bottom, 1 for baseline.
-     */
-    private int mImageSpanAlignment;
-    private static final int IMAGE_SPAN_ALIGNMENT_BOTTOM = 0;
-    private static final int IMAGE_SPAN_ALIGNMENT_BASELINE = 1;
-
     private Paint mWorkPaint = new Paint();
 
     private Tokenizer mTokenizer;
@@ -189,7 +180,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     private DrawableRecipientChip mSelectedChip;
     private Bitmap mDefaultContactPhoto;
-    private ImageSpan mMoreChip;
+    private ReplacementDrawableSpan mMoreChip;
     private TextView mMoreItem;
 
     // VisibleForTesting
@@ -680,11 +671,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             overrideBackgroundDrawable.draw(canvas);
         } else {
             // Draw the default chip background
-            final Paint backgroundPaint = new Paint();
-            backgroundPaint.setColor(backgroundColor);
+            mWorkPaint.reset();
+            mWorkPaint.setColor(backgroundColor);
             final float radius = height / 2;
             canvas.drawRoundRect(new RectF(0, 0, width, height), radius, radius,
-                    backgroundPaint);
+                    mWorkPaint);
         }
 
         // Draw the text vertically aligned
@@ -867,23 +858,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         // Pass the full text, un-ellipsized, to the chip.
         Drawable result = new BitmapDrawable(getResources(), tmpBitmap);
         result.setBounds(0, 0, tmpBitmap.getWidth(), tmpBitmap.getHeight());
-        DrawableRecipientChip recipientChip =
-                new VisibleRecipientChip(result, contact, getImageSpanAlignment());
+        VisibleRecipientChip recipientChip =
+                new VisibleRecipientChip(result, contact);
+        recipientChip.setExtraMargin(mLineSpacingExtra);
         // Return text to the original size.
         paint.setTextSize(defaultSize);
         paint.setColor(defaultColor);
         return recipientChip;
-    }
-
-    private int getImageSpanAlignment() {
-        switch (mImageSpanAlignment) {
-            case IMAGE_SPAN_ALIGNMENT_BASELINE:
-                return ImageSpan.ALIGN_BASELINE;
-            case IMAGE_SPAN_ALIGNMENT_BOTTOM:
-                return ImageSpan.ALIGN_BOTTOM;
-            default:
-                return ImageSpan.ALIGN_BOTTOM;
-        }
     }
 
     /**
@@ -963,12 +944,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
         mAvatarPosition =
                 a.getInt(R.styleable.RecipientEditTextView_avatarPosition, AVATAR_POSITION_START);
-        mImageSpanAlignment = a.getInt(R.styleable.RecipientEditTextView_imageSpanAlignment,
-                IMAGE_SPAN_ALIGNMENT_BASELINE);
         mDisableDelete = a.getBoolean(R.styleable.RecipientEditTextView_disableDelete, false);
 
-        mLineSpacingExtra =  r.getDimension(R.dimen.line_spacing_extra);
         mMaxLines = r.getInteger(R.integer.chips_max_lines);
+        mLineSpacingExtra = r.getDimensionPixelOffset(R.dimen.line_spacing_extra);
         TypedValue tv = new TypedValue();
         if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
             mActionBarHeight = TypedValue.complexToDimensionPixelSize(tv.data, getResources()
@@ -1988,7 +1967,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     }
 
     // Visible for testing.
-    /* package */ImageSpan getMoreChip() {
+    /* package */ReplacementDrawableSpan getMoreChip() {
         MoreImageSpan[] moreSpans = getSpannable().getSpans(0, getText().length(),
                 MoreImageSpan.class);
         return moreSpans != null && moreSpans.length > 0 ? moreSpans[0] : null;
@@ -1996,12 +1975,12 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     private MoreImageSpan createMoreSpan(int count) {
         String moreText = String.format(mMoreItem.getText().toString(), count);
-        TextPaint morePaint = new TextPaint(getPaint());
-        morePaint.setTextSize(mMoreItem.getTextSize());
-        morePaint.setColor(mMoreItem.getCurrentTextColor());
-        int width = (int)morePaint.measureText(moreText) + mMoreItem.getPaddingLeft()
+        mWorkPaint.set(getPaint());
+        mWorkPaint.setTextSize(mMoreItem.getTextSize());
+        mWorkPaint.setColor(mMoreItem.getCurrentTextColor());
+        final int width = (int) mWorkPaint.measureText(moreText) + mMoreItem.getPaddingLeft()
                 + mMoreItem.getPaddingRight();
-        int height = getLineHeight();
+        final int height = (int) mChipHeight;
         Bitmap drawable = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(drawable);
         int adjustedHeight = height;
@@ -2009,7 +1988,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         if (layout != null) {
             adjustedHeight -= layout.getLineDescent(0);
         }
-        canvas.drawText(moreText, 0, moreText.length(), 0, adjustedHeight, morePaint);
+        canvas.drawText(moreText, 0, moreText.length(), 0, adjustedHeight, mWorkPaint);
 
         Drawable result = new BitmapDrawable(getResources(), drawable);
         result.setBounds(0, 0, width, height);
@@ -2065,7 +2044,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         if (!mShouldShrink) {
             return;
         }
-        ImageSpan[] tempMore = getSpannable().getSpans(0, getText().length(), MoreImageSpan.class);
+        ReplacementDrawableSpan[] tempMore = getSpannable().getSpans(0, getText().length(),
+                MoreImageSpan.class);
         if (tempMore.length > 0) {
             getSpannable().removeSpan(tempMore[0]);
         }
@@ -2883,9 +2863,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * MoreImageSpan is a simple class created for tracking the existence of a
      * more chip across activity restarts/
      */
-    private class MoreImageSpan extends ImageSpan {
+    private class MoreImageSpan extends ReplacementDrawableSpan {
         public MoreImageSpan(Drawable b) {
             super(b);
+            setExtraMargin(mLineSpacingExtra);
         }
     }
 
