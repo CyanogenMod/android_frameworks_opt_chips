@@ -13,7 +13,6 @@ import android.text.style.ReplacementSpan;
 public class ReplacementDrawableSpan extends ReplacementSpan {
     protected Drawable mDrawable;
     private final Paint mWorkPaint = new Paint();
-    private final Paint.FontMetricsInt mFontMetrics = new Paint.FontMetricsInt();
     private float mExtraMargin;
 
     public ReplacementDrawableSpan(Drawable drawable) {
@@ -50,8 +49,6 @@ public class ReplacementDrawableSpan extends ReplacementSpan {
     @Override
     public void draw(Canvas canvas, CharSequence charSequence, int start, int end, float x, int top,
                      int y, int bottom, Paint paint) {
-        setupFontMetrics(mFontMetrics, paint);
-
         canvas.save();
         int transY = (bottom - mDrawable.getBounds().bottom + top) / 2;
         canvas.translate(x, transY);
