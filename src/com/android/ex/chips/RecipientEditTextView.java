@@ -673,6 +673,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             // Draw the default chip background
             mWorkPaint.reset();
             mWorkPaint.setColor(backgroundColor);
+            mWorkPaint.setAntiAlias(true);
             final float radius = height / 2;
             canvas.drawRoundRect(new RectF(0, 0, width, height), radius, radius,
                     mWorkPaint);
@@ -2223,7 +2224,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 unselectChip(currentChip);
-                popup.dismiss();
             }
         });
         popup.show();
@@ -2261,9 +2261,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
         setCursorVisible(true);
         setSelection(editable.length());
-        if (mAlternatesPopup != null && mAlternatesPopup.isShowing()) {
-            mAlternatesPopup.dismiss();
-        }
+        dismissPopups();
     }
 
     @Override
@@ -2271,8 +2269,16 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         if (mSelectedChip != null) {
             removeChip(mSelectedChip);
         }
-        mAddressPopup.dismiss();
-        mAlternatesPopup.dismiss();
+        dismissPopups();
+    }
+
+    private void dismissPopups() {
+        if (mAlternatesPopup != null && mAlternatesPopup.isShowing()) {
+            mAlternatesPopup.dismiss();
+        }
+        if (mAddressPopup != null && mAddressPopup.isShowing()) {
+            mAddressPopup.dismiss();
+        }
     }
 
     /**
