@@ -20,11 +20,11 @@
     android:background="@drawable/chips_dropdown_background"
     android:padding="16dp" >
 
-    <ImageView
+    <com.android.ex.chips.CircularImageView
         android:id="@android:id/icon"
         style="@style/ChipIconStyle"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:contentDescription="@null" />
 
     <TextView
