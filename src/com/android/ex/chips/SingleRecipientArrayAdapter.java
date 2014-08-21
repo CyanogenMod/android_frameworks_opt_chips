@@ -28,9 +28,9 @@ class SingleRecipientArrayAdapter extends ArrayAdapter<RecipientEntry> {
 
     public SingleRecipientArrayAdapter(Context context, RecipientEntry entry,
             DropdownChipLayouter dropdownChipLayouter) {
-        super(context, dropdownChipLayouter.getAlternateItemLayoutResId(), new RecipientEntry[] {
-            entry
-        });
+        super(context,
+                dropdownChipLayouter.getAlternateItemLayoutResId(AdapterType.SINGLE_RECIPIENT),
+                new RecipientEntry[] { entry });
 
         mDropdownChipLayouter = dropdownChipLayouter;
     }

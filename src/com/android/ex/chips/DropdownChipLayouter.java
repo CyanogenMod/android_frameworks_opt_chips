@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.support.annotation.LayoutRes;
 import android.text.TextUtils;
 import android.text.util.Rfc822Tokenizer;
 import android.view.LayoutInflater;
@@ -106,23 +107,23 @@ public class DropdownChipLayouter {
     }
 
     /**
-     * Returns a new view with {@link #getItemLayoutResId()}.
+     * Returns a new view with {@link #getItemLayoutResId(AdapterType)}.
      */
-    public View newView() {
-        return mInflater.inflate(getItemLayoutResId(), null);
+    public View newView(AdapterType type) {
+        return mInflater.inflate(getItemLayoutResId(type), null);
     }
 
     /**
      * Returns the same view, or inflates a new one if the given view was null.
      */
     protected View reuseOrInflateView(View convertView, ViewGroup parent, AdapterType type) {
-        int itemLayout = getItemLayoutResId();
+        int itemLayout = getItemLayoutResId(type);
         switch (type) {
             case BASE_RECIPIENT:
             case RECIPIENT_ALTERNATES:
                 break;
             case SINGLE_RECIPIENT:
-                itemLayout = getAlternateItemLayoutResId();
+                itemLayout = getAlternateItemLayoutResId(type);
                 break;
         }
         return convertView != null ? convertView : mInflater.inflate(itemLayout, parent, false);
@@ -198,8 +199,15 @@ public class DropdownChipLayouter {
      * (for photo). Ids for those should be available via {@link #getDisplayNameResId()},
      * {@link #getDestinationResId()}, and {@link #getPhotoResId()}.
      */
-    protected int getItemLayoutResId() {
-        return R.layout.chips_recipient_dropdown_item;
+    protected @LayoutRes int getItemLayoutResId(AdapterType type) {
+        switch (type) {
+            case BASE_RECIPIENT:
+                return R.layout.chips_autocomplete_recipient_dropdown_item;
+            case RECIPIENT_ALTERNATES:
+                return R.layout.chips_recipient_dropdown_item;
+            default:
+                return R.layout.chips_recipient_dropdown_item;
+        }
     }
 
     /**
@@ -209,8 +217,15 @@ public class DropdownChipLayouter {
      * (for photo). Ids for those should be available via {@link #getDisplayNameResId()},
      * {@link #getDestinationResId()}, and {@link #getPhotoResId()}.
      */
-    protected int getAlternateItemLayoutResId() {
-        return R.layout.chips_recipient_dropdown_item;
+    protected @LayoutRes int getAlternateItemLayoutResId(AdapterType type) {
+        switch (type) {
+            case BASE_RECIPIENT:
+                return R.layout.chips_autocomplete_recipient_dropdown_item;
+            case RECIPIENT_ALTERNATES:
+                return R.layout.chips_recipient_dropdown_item;
+            default:
+                return R.layout.chips_recipient_dropdown_item;
+        }
     }
 
     /**
