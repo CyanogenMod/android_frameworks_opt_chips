@@ -32,7 +32,7 @@
         <item name="android:popupBackground">@drawable/chips_popup_background</item>
     </style>
 
-    <style name="ChipWrapperStyle">
+    <style name="ChipAutocompleteWrapperStyle">
         <item name="android:paddingLeft">@dimen/chip_wrapper_start_padding</item>
         <item name="android:paddingTop">@dimen/chip_wrapper_top_padding</item>
         <item name="android:paddingRight">@dimen/chip_wrapper_end_padding</item>
