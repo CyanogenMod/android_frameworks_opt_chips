@@ -42,14 +42,8 @@ public class DropdownChipLayouter {
     private Query mQuery;
 
     public DropdownChipLayouter(LayoutInflater inflater, Context context) {
-        this(inflater, context, null);
-    }
-
-    public DropdownChipLayouter(LayoutInflater inflater, Context context,
-            ChipDeleteListener deleteListener) {
         mInflater = inflater;
         mContext = context;
-        mDeleteListener = deleteListener;
     }
 
     public void setQuery(Query query) {
