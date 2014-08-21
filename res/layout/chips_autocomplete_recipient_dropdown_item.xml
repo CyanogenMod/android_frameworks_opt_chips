@@ -20,11 +20,7 @@
     android:background="@drawable/chips_dropdown_background"
     style="@style/ChipAutocompleteWrapperStyle">
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical">
+    <LinearLayout style="@style/ChipTextViewLayoutStyle">
 
         <TextView style="@style/ChipTitleStyle" />
 
