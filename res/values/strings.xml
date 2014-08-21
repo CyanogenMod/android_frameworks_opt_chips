@@ -25,5 +25,5 @@
     <string name="copy_number">Copy phone number</string>
     <!-- Text displayed in the enter key slot when the recipientedittextview has focus.
          [CHAR LIMIT=12] -->
-    <string name="done">Return</string>
+    <string name="action_label">Return</string>
 </resources>
