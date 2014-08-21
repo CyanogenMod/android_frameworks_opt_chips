@@ -19,8 +19,6 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:background">@null</item>
-        <item name="android:dropDownHorizontalOffset">-16dip</item>
-        <item name="android:dropDownVerticalOffset">-6dip</item>
         <item name="android:dropDownWidth">match_parent</item>
         <item name="android:imeOptions">actionNext|flagNoFullscreen</item>
         <item name="android:inputType">textEmailAddress|textMultiLine</item>
@@ -37,6 +35,13 @@
         <item name="android:paddingTop">@dimen/chip_wrapper_top_padding</item>
         <item name="android:paddingRight">@dimen/chip_wrapper_end_padding</item>
         <item name="android:paddingBottom">@dimen/chip_wrapper_bottom_padding</item>
+    </style>
+
+    <style name="ChipAutocompleteDividerStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1px</item>
+        <item name="android:background">@color/autocomplete_divider_color</item>
+        <item name="android:layout_marginLeft">@dimen/chip_wrapper_start_padding</item>
     </style>
 
     <style name="ChipTextViewLayoutStyle">
