@@ -26,4 +26,6 @@
     <!-- Text displayed in the enter key slot when the recipientedittextview has focus.
          [CHAR LIMIT=12] -->
     <string name="action_label">Return</string>
+    <!-- Announce the number of possible recipient entries that the user can select from for accessibility purposes [CHAR LIMIT=200] -->
+    <string name="accessbility_suggestion_dropdown_opened">Contact suggestions opened</string>
 </resources>
