@@ -17,6 +17,7 @@
 
 package com.android.ex.chips;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipDescription;
@@ -138,7 +139,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private static final int MAX_CHIPS_PARSED = 50;
 
     private static int sSelectedTextColor = -1;
-    private static int sExcessTopPadding = -1;
+    private static int sVisibleDisplayFrameTop = -1;
 
     // Resources for displaying chips.
     private Drawable mChipBackground = null;
@@ -155,7 +156,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private final int mTextHeight;
     private boolean mDisableDelete;
     private int mMaxLines;
-    private int mActionBarHeight;
 
     /**
      * Enumerator for avatar position. See attr.xml for more details.
@@ -470,11 +470,26 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
     }
 
-    private int getExcessTopPadding() {
-        if (sExcessTopPadding == -1) {
-            sExcessTopPadding = (int) (mChipHeight + mLineSpacingExtra);
+    // sVisibleDisplayFrameTop is computed on a on-demand basis because the view needs to be fully
+    // measured and created in order to calculate the visible display frame.
+    private int getVisibleDisplayFrameTop() {
+        if (sVisibleDisplayFrameTop == -1) {
+            final TypedValue tv = new TypedValue();
+            final Context context = getContext();
+            // Visible top is our visible display (due to status bar) plus the height of action bar.
+            if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
+                sVisibleDisplayFrameTop = TypedValue.complexToDimensionPixelSize(tv.data,
+                        getResources().getDisplayMetrics());
+            }
+            // Compute the status bar height, or rather where our visible display starts
+            if (context instanceof Activity) {
+                final Rect visibleRect = new Rect();
+                ((Activity) context).getWindow().getDecorView()
+                        .getWindowVisibleDisplayFrame(visibleRect);
+                sVisibleDisplayFrameTop += visibleRect.top;
+            }
         }
-        return sExcessTopPadding;
+        return sVisibleDisplayFrameTop;
     }
 
     @Override
@@ -496,14 +511,14 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     protected void scrollBottomIntoView() {
         if (mScrollView != null && mShouldShrink) {
-            int[] location = new int[2];
-            getLocationOnScreen(location);
-            int height = getHeight();
-            int currentPos = location[1] + height;
+            final int[] location = new int[2];
+            getLocationInWindow(location);
             // Desired position shows at least 1 line of chips below the action
             // bar. We add excess padding to make sure this is always below other
             // content.
-            int desiredPos = (int) mChipHeight + mActionBarHeight + getExcessTopPadding();
+            final int height = getHeight();
+            final int currentPos = location[1] + height;
+            final int desiredPos = getVisibleDisplayFrameTop() + height / getLineCount();
             if (currentPos > desiredPos) {
                 mScrollView.scrollBy(0, currentPos - desiredPos);
             }
@@ -948,11 +963,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
         mMaxLines = r.getInteger(R.integer.chips_max_lines);
         mLineSpacingExtra = r.getDimensionPixelOffset(R.dimen.line_spacing_extra);
-        TypedValue tv = new TypedValue();
-        if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
-            mActionBarHeight = TypedValue.complexToDimensionPixelSize(tv.data, getResources()
-                    .getDisplayMetrics());
-        }
 
         a.recycle();
     }
