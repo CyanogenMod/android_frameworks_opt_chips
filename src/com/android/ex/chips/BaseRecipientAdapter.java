@@ -256,7 +256,7 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
                     results.values = new DefaultFilterResult(
                             entries, entryMap, nonAggregatedEntries,
                             existingDestinations, paramsList);
-                    results.count = 1;
+                    results.count = entries.size();
                 }
             } finally {
                 if (defaultDirectoryCursor != null) {
@@ -382,7 +382,7 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
                 }
                 if (!tempEntries.isEmpty()) {
                     results.values = tempEntries;
-                    results.count = 1;
+                    results.count = tempEntries.size();
                 }
             }
 
