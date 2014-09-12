@@ -505,6 +505,12 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 if (entries != null && entries.size() > 0) {
                     scrollBottomIntoView();
                 }
+                // Set the dropdown height to be the remaining height
+                final int[] coords = new int[2];
+                getLocationInWindow(coords);
+                final Rect displayFrame = new Rect();
+                getWindowVisibleDisplayFrame(displayFrame);
+                setDropDownHeight(displayFrame.bottom - coords[1] - getHeight());
             }
         });
         baseAdapter.setDropdownChipLayouter(mDropdownChipLayouter);
