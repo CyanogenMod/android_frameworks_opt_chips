@@ -183,9 +183,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private ReplacementDrawableSpan mMoreChip;
     private TextView mMoreItem;
 
+    private int mCurrentSuggestionCount;
+
     // VisibleForTesting
     final ArrayList<String> mPendingChips = new ArrayList<String>();
-
 
     private int mPendingChipsCount = 0;
     private int mCheckedItem;
@@ -503,6 +504,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 // that the user can see as many results as possible.
                 if (entries != null && entries.size() > 0) {
                     scrollBottomIntoView();
+                    // Here the current suggestion count is still the old one since we update
+                    // the count at the bottom of this function.
+                    if (mCurrentSuggestionCount == 0) {
+                        // Announce the new number of possible choices for accessibility.
+                        announceForAccessibility(getContext().getString(
+                                R.string.accessbility_suggestion_dropdown_opened));
+                    }
                 }
                 // Set the dropdown height to be the remaining height
                 final int[] coords = new int[2];
@@ -510,6 +518,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 final Rect displayFrame = new Rect();
                 getWindowVisibleDisplayFrame(displayFrame);
                 setDropDownHeight(displayFrame.bottom - coords[1] - getHeight());
+
+                mCurrentSuggestionCount = entries == null ? 0 : entries.size();
             }
         });
         baseAdapter.setDropdownChipLayouter(mDropdownChipLayouter);
