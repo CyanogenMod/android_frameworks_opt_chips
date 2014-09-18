@@ -2185,6 +2185,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             int spanStart = spannable.getSpanStart(currentChip);
             int spanEnd = spannable.getSpanEnd(currentChip);
             spannable.removeSpan(currentChip);
+            // Don't need leading space if it's the only chip
+            if (spanEnd - spanStart == editable.length() - 1) {
+                spanEnd++;
+            }
             editable.delete(spanStart, spanEnd);
             setCursorVisible(true);
             setSelection(editable.length());
