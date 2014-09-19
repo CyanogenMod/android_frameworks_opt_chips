@@ -366,7 +366,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
 
         outAttrs.actionId = EditorInfo.IME_ACTION_DONE;
-        outAttrs.actionLabel = getContext().getString(R.string.action_label);
+
+        // Custom action labels are discouraged in L; a checkmark icon is shown in place of the
+        // custom text in this case.
+        outAttrs.actionLabel = Build.VERSION.SDK_INT >= Build.VERSION_CODES.L ? null :
+            getContext().getString(R.string.action_label);
         return connection;
     }
 
