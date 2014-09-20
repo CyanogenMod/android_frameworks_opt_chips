@@ -20,4 +20,5 @@
     <string name="copy_email" msgid="7869435992461603532">"Copier l\'adresse de courriel"</string>
     <string name="copy_number" msgid="530057841276106843">"Copier le numéro de téléphone"</string>
     <string name="action_label" msgid="1318401633653605424">"Retour"</string>
+    <string name="accessbility_suggestion_dropdown_opened" msgid="3231589819168382515">"Suggestions de contacts ouvertes"</string>
 </resources>
