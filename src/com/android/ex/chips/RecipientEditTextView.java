@@ -76,6 +76,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewParent;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.widget.AdapterView;
@@ -183,6 +185,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private ReplacementDrawableSpan mMoreChip;
     private TextView mMoreItem;
 
+    private boolean mIsAccessibilityOn;
     private int mCurrentSuggestionCount;
 
     // VisibleForTesting
@@ -297,6 +300,15 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         setOnEditorActionListener(this);
 
         setDropdownChipLayouter(new DropdownChipLayouter(LayoutInflater.from(context), context));
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+
+        final AccessibilityManager accessibilityManager =
+                (AccessibilityManager) getContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+        mIsAccessibilityOn = accessibilityManager.isEnabled();
     }
 
     private int calculateTextHeight() {
@@ -512,7 +524,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                     // the count at the bottom of this function.
                     if (mCurrentSuggestionCount == 0) {
                         // Announce the new number of possible choices for accessibility.
-                        announceForAccessibility(getContext().getString(
+                        announceForAccessibilityCompat(getContext().getString(
                                 R.string.accessbility_suggestion_dropdown_opened));
                     }
                 }
@@ -527,6 +539,20 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             }
         });
         baseAdapter.setDropdownChipLayouter(mDropdownChipLayouter);
+    }
+
+    private void announceForAccessibilityCompat(String text) {
+        if (mIsAccessibilityOn && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            final ViewParent parent = getParent();
+            if (parent != null) {
+                AccessibilityEvent event = AccessibilityEvent.obtain(
+                        AccessibilityEvent.TYPE_ANNOUNCEMENT);
+                onInitializeAccessibilityEvent(event);
+                event.getText().add(text);
+                event.setContentDescription(null);
+                parent.requestSendAccessibilityEvent(this, event);
+            }
+        }
     }
 
     protected void scrollBottomIntoView() {
