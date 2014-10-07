@@ -175,6 +175,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private TextWatcher mTextWatcher;
     private DropdownChipLayouter mDropdownChipLayouter;
 
+    private View mDropdownAnchor = this;
     private ListPopupWindow mAlternatesPopup;
     private ListPopupWindow mAddressPopup;
     private View mAlternatePopupAnchor;
@@ -346,6 +347,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         mAttachedToWindow = true;
+
+        final int anchorId = getDropDownAnchor();
+        if (anchorId != View.NO_ID) {
+            mDropdownAnchor = getRootView().findViewById(anchorId);
+        }
     }
 
     @Override
@@ -529,12 +535,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                                 R.string.accessbility_suggestion_dropdown_opened));
                     }
                 }
-                // Set the dropdown height to be the remaining height
+
+                // Set the dropdown height to be the remaining height from the anchor to the bottom.
                 final int[] coords = new int[2];
-                getLocationInWindow(coords);
+                mDropdownAnchor.getLocationInWindow(coords);
                 final Rect displayFrame = new Rect();
                 getWindowVisibleDisplayFrame(displayFrame);
-                setDropDownHeight(displayFrame.bottom - coords[1] - getHeight());
+                setDropDownHeight(displayFrame.bottom - coords[1] - mDropdownAnchor.getHeight());
 
                 mCurrentSuggestionCount = entries == null ? 0 : entries.size();
             }
