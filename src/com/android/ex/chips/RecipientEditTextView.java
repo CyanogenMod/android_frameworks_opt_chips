@@ -143,6 +143,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private static int sSelectedTextColor = -1;
     private static int sVisibleDisplayFrameTop = -1;
 
+    // Work variables to avoid re-allocation on every typed character.
+    private final Rect mRect = new Rect();
+    private final int[] mCoords = new int[2];
+
     // Resources for displaying chips.
     private Drawable mChipBackground = null;
     private Drawable mChipDelete = null;
@@ -313,18 +317,17 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     }
 
     private int calculateTextHeight() {
-        final Rect textBounds = new Rect();
         final TextPaint paint = getPaint();
 
-        textBounds.setEmpty();
+        mRect.setEmpty();
         // First measure the bounds of a sample text.
         final String textHeightSample = "a";
-        paint.getTextBounds(textHeightSample, 0, textHeightSample.length(), textBounds);
+        paint.getTextBounds(textHeightSample, 0, textHeightSample.length(), mRect);
 
-        textBounds.left = 0;
-        textBounds.right = 0;
+        mRect.left = 0;
+        mRect.right = 0;
 
-        return textBounds.height();
+        return mRect.height();
     }
 
     public void setDropdownChipLayouter(DropdownChipLayouter dropdownChipLayouter) {
@@ -505,12 +508,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                         getResources().getDisplayMetrics());
             }
             // Compute the status bar height, or rather where our visible display starts
-            if (context instanceof Activity) {
-                final Rect visibleRect = new Rect();
-                ((Activity) context).getWindow().getDecorView()
-                        .getWindowVisibleDisplayFrame(visibleRect);
-                sVisibleDisplayFrameTop += visibleRect.top;
-            }
+            getWindowVisibleDisplayFrame(mRect);
+            sVisibleDisplayFrameTop += mRect.top;
         }
         return sVisibleDisplayFrameTop;
     }
@@ -536,11 +535,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 }
 
                 // Set the dropdown height to be the remaining height from the anchor to the bottom.
-                final int[] coords = new int[2];
-                mDropdownAnchor.getLocationInWindow(coords);
-                final Rect displayFrame = new Rect();
-                getWindowVisibleDisplayFrame(displayFrame);
-                setDropDownHeight(displayFrame.bottom - coords[1] - mDropdownAnchor.getHeight());
+                mDropdownAnchor.getLocationInWindow(mCoords);
+                getWindowVisibleDisplayFrame(mRect);
+                setDropDownHeight(mRect.bottom - mCoords[1] - mDropdownAnchor.getHeight());
 
                 mCurrentSuggestionCount = entries == null ? 0 : entries.size();
             }
@@ -564,13 +561,12 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     protected void scrollBottomIntoView() {
         if (mScrollView != null && mShouldShrink) {
-            final int[] location = new int[2];
-            getLocationInWindow(location);
+            getLocationInWindow(mCoords);
             // Desired position shows at least 1 line of chips below the action
             // bar. We add excess padding to make sure this is always below other
             // content.
             final int height = getHeight();
-            final int currentPos = location[1] + height;
+            final int currentPos = mCoords[1] + height;
             final int desiredPos = getVisibleDisplayFrameTop() + height / getLineCount();
             if (currentPos > desiredPos) {
                 mScrollView.scrollBy(0, currentPos - desiredPos);
