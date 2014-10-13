@@ -17,7 +17,6 @@
 
 package com.android.ex.chips;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipDescription;
@@ -63,7 +62,6 @@ import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.ActionMode.Callback;
 import android.view.DragEvent;
@@ -141,7 +139,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private static final int MAX_CHIPS_PARSED = 50;
 
     private static int sSelectedTextColor = -1;
-    private static int sVisibleDisplayFrameTop = -1;
 
     // Work variables to avoid re-allocation on every typed character.
     private final Rect mRect = new Rect();
@@ -496,24 +493,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
     }
 
-    // sVisibleDisplayFrameTop is computed on a on-demand basis because the view needs to be fully
-    // measured and created in order to calculate the visible display frame.
-    private int getVisibleDisplayFrameTop() {
-        if (sVisibleDisplayFrameTop == -1) {
-            final TypedValue tv = new TypedValue();
-            final Context context = getContext();
-            // Visible top is our visible display (due to status bar) plus the height of action bar.
-            if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
-                sVisibleDisplayFrameTop = TypedValue.complexToDimensionPixelSize(tv.data,
-                        getResources().getDisplayMetrics());
-            }
-            // Compute the status bar height, or rather where our visible display starts
-            getWindowVisibleDisplayFrame(mRect);
-            sVisibleDisplayFrameTop += mRect.top;
-        }
-        return sVisibleDisplayFrameTop;
-    }
-
     @Override
     public <T extends ListAdapter & Filterable> void setAdapter(T adapter) {
         super.setAdapter(adapter);
@@ -567,7 +546,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             // content.
             final int height = getHeight();
             final int currentPos = mCoords[1] + height;
-            final int desiredPos = getVisibleDisplayFrameTop() + height / getLineCount();
+            mScrollView.getLocationInWindow(mCoords);
+            final int desiredPos = mCoords[1] + height / getLineCount();
             if (currentPos > desiredPos) {
                 mScrollView.scrollBy(0, currentPos - desiredPos);
             }
