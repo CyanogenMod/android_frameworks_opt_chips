@@ -321,10 +321,17 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
                         + existingDestinations.size()
                         + ", remaining limit: " + limit + ") ");
             }
-            final Cursor directoryCursor = mContentResolver.query(
-                    DirectoryListQuery.URI, DirectoryListQuery.PROJECTION,
-                    null, null, null);
-            return setupOtherDirectories(mContext, directoryCursor, mAccount);
+            Cursor directoryCursor = null;
+            try {
+                directoryCursor = mContentResolver.query(
+                        DirectoryListQuery.URI, DirectoryListQuery.PROJECTION,
+                        null, null, null);
+                return setupOtherDirectories(mContext, directoryCursor, mAccount);
+            } finally {
+                if (directoryCursor != null) {
+                    directoryCursor.close();
+                }
+            }
         } else {
             // We don't need to search other directories.
             return null;
