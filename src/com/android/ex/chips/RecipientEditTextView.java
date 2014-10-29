@@ -388,7 +388,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
         // Custom action labels are discouraged in L; a checkmark icon is shown in place of the
         // custom text in this case.
-        outAttrs.actionLabel = Build.VERSION.SDK_INT >= Build.VERSION_CODES.L ? null :
+        outAttrs.actionLabel = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? null :
             getContext().getString(R.string.action_label);
         return connection;
     }
