@@ -1626,7 +1626,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return false;
     }
 
-    private void clearSelectedChip() {
+    /**
+     * Clears the selected chip if there is one (and dismissing any popups related to the selected
+     * chip in the process).
+     */
+    public void clearSelectedChip() {
         if (mSelectedChip != null) {
             unselectChip(mSelectedChip);
             mSelectedChip = null;
