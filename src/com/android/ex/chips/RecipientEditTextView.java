@@ -86,6 +86,7 @@ import android.widget.ListAdapter;
 import android.widget.ListPopupWindow;
 import android.widget.ListView;
 import android.widget.MultiAutoCompleteTextView;
+import android.widget.PopupWindow;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -266,9 +267,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             sSelectedTextColor = context.getResources().getColor(android.R.color.white);
         }
         mAlternatesPopup = new ListPopupWindow(context);
-        mAlternatesPopup.setBackgroundDrawable(null);
+        setupPopupWindow(mAlternatesPopup);
         mAddressPopup = new ListPopupWindow(context);
-        mAddressPopup.setBackgroundDrawable(null);
+        setupPopupWindow(mAddressPopup);
         mCopyDialog = new Dialog(context);
         mAlternatesListener = new OnItemClickListener() {
             @Override
@@ -302,6 +303,16 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         setOnEditorActionListener(this);
 
         setDropdownChipLayouter(new DropdownChipLayouter(LayoutInflater.from(context), context));
+    }
+
+    private void setupPopupWindow(ListPopupWindow popup) {
+        popup.setModal(true);
+        popup.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+                clearSelectedChip();
+            }
+        });
     }
 
     @Override
