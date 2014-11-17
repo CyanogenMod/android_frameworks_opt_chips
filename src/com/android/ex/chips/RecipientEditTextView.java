@@ -708,6 +708,17 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 postHandlePendingChips();
             } else {
                 Editable editable = getText();
+
+                // With the google Pinyin change, there is a space trailing in the text
+                // box for recipient. Because of this there are different values in "whatEnd"
+                // and "selEnd" variables (which should not be the case). This change just
+                // clears any white spaces. This change did not cause any side effects for
+                // other use cases.
+                if(editable.toString().trim().length() == 0) {
+                    editable = new SpannableStringBuilder(editable.toString().trim());
+                    setText(editable.toString());
+                }
+
                 int end = getSelectionEnd();
                 int start = mTokenizer.findTokenStart(editable, end);
                 DrawableRecipientChip[] chips =
