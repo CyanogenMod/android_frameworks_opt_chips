@@ -365,6 +365,14 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     }
 
     @Override
+    public void setDropDownAnchor(int anchorId) {
+        super.setDropDownAnchor(anchorId);
+        if (anchorId != View.NO_ID) {
+          mDropdownAnchor = getRootView().findViewById(anchorId);
+        }
+    }
+
+    @Override
     public boolean onEditorAction(TextView view, int action, KeyEvent keyEvent) {
         if (action == EditorInfo.IME_ACTION_DONE) {
             if (commitDefault()) {
