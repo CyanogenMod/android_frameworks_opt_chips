@@ -139,7 +139,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     private static final int MAX_CHIPS_PARSED = 50;
 
-    private static int sSelectedTextColor = -1;
+    private int mSelectedChipTextColor;
+    private int mUnselectedChipTextColor;
+    private int mSelectedChipBackgroundColor;
+    private int mUnselectedChipBackgroundColor;
 
     // Work variables to avoid re-allocation on every typed character.
     private final Rect mRect = new Rect();
@@ -263,9 +266,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         super(context, attrs);
         setChipDimensions(context, attrs);
         mTextHeight = calculateTextHeight();
-        if (sSelectedTextColor == -1) {
-            sSelectedTextColor = context.getResources().getColor(android.R.color.white);
-        }
         mAlternatesPopup = new ListPopupWindow(context);
         setupPopupWindow(mAlternatesPopup);
         mAddressPopup = new ListPopupWindow(context);
@@ -667,9 +667,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * @param paint The paint to use to draw the bitmap.
      */
     private Bitmap createSelectedChip(RecipientEntry contact, TextPaint paint) {
-        paint.setColor(sSelectedTextColor);
+        paint.setColor(mSelectedChipTextColor);
         final ChipBitmapContainer bitmapContainer = createChipBitmap(contact, paint,
-                mChipBackgroundPressed, getResources().getColor(R.color.chip_background_selected));
+                mChipBackgroundPressed, mSelectedChipBackgroundColor);
 
         if (bitmapContainer.loadIcon) {
             loadAvatarIcon(contact, bitmapContainer);
@@ -685,7 +685,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * @param paint The paint to use to draw the bitmap.
      */
     private Bitmap createUnselectedChip(RecipientEntry contact, TextPaint paint) {
-        paint.setColor(getContext().getResources().getColor(android.R.color.black));
+        paint.setColor(getDefaultChipTextColor(contact));
         ChipBitmapContainer bitmapContainer = createChipBitmap(contact, paint,
                 getChipBackground(contact), getDefaultChipBackgroundColor(contact));
 
@@ -862,9 +862,14 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return contact.isValid() ? mChipBackground : mInvalidChipBackground;
     }
 
+    private int getDefaultChipTextColor(RecipientEntry contact) {
+        return contact.isValid() ? mUnselectedChipTextColor :
+                getResources().getColor(android.R.color.black);
+    }
+
     private int getDefaultChipBackgroundColor(RecipientEntry contact) {
-        return getResources().getColor(contact.isValid() ? R.color.chip_background :
-                R.color.chip_background_invalid);
+        return contact.isValid() ? mUnselectedChipBackgroundColor :
+                getResources().getColor(R.color.chip_background_invalid);
     }
 
     /**
@@ -1015,6 +1020,21 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         mMaxLines = r.getInteger(R.integer.chips_max_lines);
         mLineSpacingExtra = r.getDimensionPixelOffset(R.dimen.line_spacing_extra);
 
+        mUnselectedChipTextColor = a.getColor(
+                R.styleable.RecipientEditTextView_unselectedChipTextColor,
+                r.getColor(android.R.color.black));
+
+        mSelectedChipTextColor = a.getColor(
+                R.styleable.RecipientEditTextView_selectedChipTextColor,
+                r.getColor(android.R.color.white));
+
+        mUnselectedChipBackgroundColor = a.getColor(
+                R.styleable.RecipientEditTextView_unselectedChipBackgroundColor,
+                r.getColor(R.color.chip_background));
+
+        mSelectedChipBackgroundColor = a.getColor(
+                R.styleable.RecipientEditTextView_selectedChipBackgroundColor,
+                r.getColor(R.color.chip_background_selected));
         a.recycle();
     }
 

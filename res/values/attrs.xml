@@ -31,5 +31,9 @@
             <enum name="bottom" value = "0"/>
             <enum name="baseline" value = "1"/>
         </attr>
+        <attr name="unselectedChipBackgroundColor" format="color" />
+        <attr name="selectedChipBackgroundColor" format="color" />
+        <attr name="unselectedChipTextColor" format="color" />
+        <attr name="selectedChipTextColor" format="color" />
     </declare-styleable>
 </resources>
