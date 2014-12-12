@@ -201,6 +201,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private int mCheckedItem;
     private boolean mNoChips = false;
     private boolean mShouldShrink = true;
+    private boolean mRequiresShrinkWhenNotGone = false;
 
     // VisibleForTesting
     ArrayList<DrawableRecipientChip> mTemporaryRecipients;
@@ -594,13 +595,20 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             clearSelectedChip();
         } else {
             if (getWidth() <= 0) {
-                // We don't have the width yet which means the view hasn't been drawn yet
-                // and there is no reason to attempt to commit chips yet.
-                // This focus lost must be the result of an orientation change
-                // or an initial rendering.
-                // Re-post the shrink for later.
                 mHandler.removeCallbacks(mDelayedShrink);
-                mHandler.post(mDelayedShrink);
+
+                if (getVisibility() == GONE) {
+                    // We aren't going to have a width any time soon, so defer
+                    // this until we're not GONE.
+                    mRequiresShrinkWhenNotGone = true;
+                } else {
+                    // We don't have the width yet which means the view hasn't been drawn yet
+                    // and there is no reason to attempt to commit chips yet.
+                    // This focus lost must be the result of an orientation change
+                    // or an initial rendering.
+                    // Re-post the shrink for later.
+                    mHandler.post(mDelayedShrink);
+                }
                 return;
             }
             // Reset any pending chips as they would have been handled
@@ -3200,6 +3208,16 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     public void setAlternatePopupAnchor(View v) {
         mAlternatePopupAnchor = v;
+    }
+
+    @Override
+    public void setVisibility(int visibility) {
+        super.setVisibility(visibility);
+
+        if (visibility != GONE && mRequiresShrinkWhenNotGone) {
+            mRequiresShrinkWhenNotGone = false;
+            mHandler.post(mDelayedShrink);
+        }
     }
 
     private static class ChipBitmapContainer {
