@@ -220,18 +220,18 @@ public class DropdownChipLayouter {
         }
         if (drawable == null) {
             view.setVisibility(View.GONE);
-        }
-
-        view.setImageDrawable(drawable);
-        if (mDeleteListener != null) {
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (drawable.getCurrent() != null) {
-                        mDeleteListener.onChipDelete();
+        } else {
+            view.setImageDrawable(drawable);
+            if (mDeleteListener != null) {
+                view.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (drawable.getCurrent() != null) {
+                            mDeleteListener.onChipDelete();
+                        }
                     }
-                }
-            });
+                });
+            }
         }
     }
 

@@ -20,7 +20,6 @@
             <enum name="start" value="1" />
         </attr>
         <attr name="chipBackground" format="reference" />
-        <attr name="chipBackgroundPressed" format="reference" />
         <attr name="chipDelete" format="reference" />
         <attr name="chipFontSize" format="reference" />
         <attr name="chipHeight" format="reference" />
