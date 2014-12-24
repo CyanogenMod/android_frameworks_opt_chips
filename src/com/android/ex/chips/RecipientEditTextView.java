@@ -49,6 +49,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.telephony.PhoneNumberUtils;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.Layout;
@@ -103,6 +104,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -1310,12 +1312,17 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return mValidator == null ? true : mValidator.isValid(text);
     }
 
-    private static String tokenizeAddress(String destination) {
-        Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(destination);
-        if (tokens != null && tokens.length > 0) {
-            return tokens[0].getAddress();
+    private String tokenizeAddress(String destination) {
+        if (getAdapter().isPhoneQuery() && isPhoneNumber(destination)) {
+            return PhoneNumberUtils.formatNumberToE164(destination,
+                Locale.getDefault().getCountry());
+        } else {
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(destination);
+            if (tokens != null && tokens.length > 0) {
+                return tokens[0].getAddress();
+            }
+            return destination;
         }
-        return destination;
     }
 
     @Override
