@@ -415,7 +415,7 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
         } else {
             projection = Queries.PHONE.getProjection();
 
-            if (lookupKey == null) {
+            if (directoryId == null || lookupKey == null) {
                 uri = Queries.PHONE.getContentUri();
                 desiredMimeType = null;
             } else {
@@ -441,10 +441,14 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
             cursor = new MatrixCursor(projection);
         }
 
-        final Cursor resultCursor = removeUndesiredDestinations(cursor, desiredMimeType, lookupKey);
-        cursor.close();
+        if (cursor != null) {
+            final Cursor resultCursor = removeUndesiredDestinations(cursor,
+                    desiredMimeType, lookupKey);
+            cursor.close();
+            return resultCursor;
+        }
 
-        return resultCursor;
+        return cursor;
     }
 
     /**
