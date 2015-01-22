@@ -1,6 +1,7 @@
 package com.android.ex.chips;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.StateListDrawable;
@@ -75,7 +76,9 @@ public class DropdownChipLayouter {
 
     /**
      * See {@link #bindView(View, ViewGroup, RecipientEntry, int, AdapterType, String)}
-     * @param deleteDrawable
+     * @param deleteDrawable a {@link android.graphics.drawable.StateListDrawable} representing
+     *     the delete icon. android.R.attr.state_activated should map to the delete icon, and the
+     *     default state can map to a drawable of your choice (or null for no drawable).
      */
     public View bindView(View convertView, ViewGroup parent, RecipientEntry entry, int position,
             AdapterType type, String constraint, StateListDrawable deleteDrawable) {
@@ -128,7 +131,7 @@ public class DropdownChipLayouter {
         bindTextToView(destination, viewHolder.destinationView);
         bindTextToView(destinationType, viewHolder.destinationTypeView);
         bindIconToView(showImage, entry, viewHolder.imageView, type);
-        bindDrawableToDeleteView(deleteDrawable, viewHolder.deleteView);
+        bindDrawableToDeleteView(deleteDrawable, entry.getDisplayName(), viewHolder.deleteView);
 
         return itemView;
     }
@@ -214,14 +217,18 @@ public class DropdownChipLayouter {
         }
     }
 
-    protected void bindDrawableToDeleteView(final StateListDrawable drawable, ImageView view) {
+    protected void bindDrawableToDeleteView(final StateListDrawable drawable, String recipient,
+            ImageView view) {
         if (view == null) {
             return;
         }
         if (drawable == null) {
             view.setVisibility(View.GONE);
         } else {
+            final Resources res = mContext.getResources();
             view.setImageDrawable(drawable);
+            view.setContentDescription(
+                    res.getString(R.string.dropdown_delete_button_desc, recipient));
             if (mDeleteListener != null) {
                 view.setOnClickListener(new View.OnClickListener() {
                     @Override
