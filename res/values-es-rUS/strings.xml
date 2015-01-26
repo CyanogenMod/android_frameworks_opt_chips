@@ -21,4 +21,6 @@
     <string name="copy_number" msgid="530057841276106843">"Copiar el número de teléfono"</string>
     <string name="action_label" msgid="1318401633653605424">"Volver"</string>
     <string name="accessbility_suggestion_dropdown_opened" msgid="3231589819168382515">"Sugerencias de contacto disponibles"</string>
+    <!-- no translation found for dropdown_delete_button_desc (8506791557733906887) -->
+    <skip />
 </resources>
