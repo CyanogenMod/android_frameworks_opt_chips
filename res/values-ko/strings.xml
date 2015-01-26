@@ -21,4 +21,6 @@
     <string name="copy_number" msgid="530057841276106843">"전화번호 복사"</string>
     <string name="action_label" msgid="1318401633653605424">"Return"</string>
     <string name="accessbility_suggestion_dropdown_opened" msgid="3231589819168382515">"추천 연락처 열림"</string>
+    <!-- no translation found for dropdown_delete_button_desc (8506791557733906887) -->
+    <skip />
 </resources>
