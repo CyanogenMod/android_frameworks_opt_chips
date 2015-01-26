@@ -206,6 +206,7 @@ public class DropdownChipLayouter {
                     break;
                 case SINGLE_RECIPIENT:
                 default:
+                    view.setImageResource(getDefaultPhotoResId());
                     break;
             }
             view.setVisibility(View.VISIBLE);
