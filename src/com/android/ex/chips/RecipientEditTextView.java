@@ -2884,16 +2884,19 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                                         .getContactId())
                                         && getSpannable().getSpanStart(temp) != -1) {
                                     // Replace this.
-                                    final RecipientEntry entry = createValidatedEntry(entries
-                                            .get(tokenizeAddress(temp.getEntry().getDestination())
-                                                    .toLowerCase()));
-                                    if (entry != null) {
-                                        mHandler.post(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                replaceChip(temp, entry);
-                                            }
-                                        });
+                                    final String address = tokenizeAddress(
+                                            temp.getEntry().getDestination());
+                                    if (!TextUtils.isEmpty(address)) {
+                                        final RecipientEntry entry = createValidatedEntry(entries
+                                                .get(address.toLowerCase()));
+                                        if (entry != null) {
+                                            mHandler.post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    replaceChip(temp, entry);
+                                                }
+                                            });
+                                        }
                                     }
                                 }
                             }
