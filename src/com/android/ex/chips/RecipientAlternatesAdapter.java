@@ -421,7 +421,7 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
             selection.append(Queries.PHONE.getProjection()[Queries.Query.CONTACT_ID]);
             selection.append(" = ?");
 
-            if (lookupKey == null) {
+            if (directoryId == null || lookupKey == null) {
                 uri = Queries.PHONE.getContentUri();
                 desiredMimeType = null;
             } else {
