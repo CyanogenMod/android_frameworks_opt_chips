@@ -192,7 +192,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private ReplacementDrawableSpan mMoreChip;
     private TextView mMoreItem;
 
-    private boolean mIsAccessibilityOn;
     private int mCurrentSuggestionCount;
 
     // VisibleForTesting
@@ -314,15 +313,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 clearSelectedChip();
             }
         });
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-
-        final AccessibilityManager accessibilityManager =
-                (AccessibilityManager) getContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
-        mIsAccessibilityOn = accessibilityManager.isEnabled();
     }
 
     private int calculateTextHeight() {
@@ -548,7 +538,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void announceForAccessibilityCompat(String text) {
-        if (mIsAccessibilityOn && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+        final AccessibilityManager accessibilityManager =
+                (AccessibilityManager) getContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+        final boolean isAccessibilityOn = accessibilityManager.isEnabled();
+
+        if (isAccessibilityOn && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             final ViewParent parent = getParent();
             if (parent != null) {
                 AccessibilityEvent event = AccessibilityEvent.obtain(
