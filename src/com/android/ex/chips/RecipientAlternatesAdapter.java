@@ -440,10 +440,14 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
                     }, null);
         }
 
-        final Cursor resultCursor = removeUndesiredDestinations(cursor, desiredMimeType, lookupKey);
-        cursor.close();
+        if (cursor != null) {
+            final Cursor resultCursor = removeUndesiredDestinations(cursor,
+                    desiredMimeType, lookupKey);
+            cursor.close();
+            return resultCursor;
+        }
 
-        return resultCursor;
+        return cursor;
     }
 
     /**
