@@ -21,6 +21,5 @@
     <string name="copy_number" msgid="530057841276106843">"Copia el número de telèfon"</string>
     <string name="action_label" msgid="1318401633653605424">"Torna"</string>
     <string name="accessbility_suggestion_dropdown_opened" msgid="3231589819168382515">"S\'han obert els suggeriments de contactes."</string>
-    <!-- no translation found for dropdown_delete_button_desc (8506791557733906887) -->
-    <skip />
+    <string name="dropdown_delete_button_desc" msgid="8506791557733906887">"Suprimeix <xliff:g id="CONTACT">%s</xliff:g> dels destinataris"</string>
 </resources>
