@@ -21,6 +21,5 @@
     <string name="copy_number" msgid="530057841276106843">"Telefoonnummer kopiëren"</string>
     <string name="action_label" msgid="1318401633653605424">"Return"</string>
     <string name="accessbility_suggestion_dropdown_opened" msgid="3231589819168382515">"Contactsuggesties geopend"</string>
-    <!-- no translation found for dropdown_delete_button_desc (8506791557733906887) -->
-    <skip />
+    <string name="dropdown_delete_button_desc" msgid="8506791557733906887">"<xliff:g id="CONTACT">%s</xliff:g> verwijderen uit ontvangers"</string>
 </resources>
