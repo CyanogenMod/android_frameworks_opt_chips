@@ -524,8 +524,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             return;
         }
         long contactId = mSelectedChip != null ? mSelectedChip.getEntry().getContactId() : -1;
-        if (mSelectedChip != null && contactId != RecipientEntry.INVALID_CONTACT
-                && (!isPhoneQuery() && contactId != RecipientEntry.GENERATED_CONTACT)) {
+        if (mSelectedChip != null && contactId != RecipientEntry.INVALID_CONTACT) {
             clearSelectedChip();
         } else {
             if (getWidth() <= 0) {
@@ -2272,6 +2271,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
         setCursorVisible(true);
         setSelection(editable.length());
+        if (mAddressPopup != null && mAddressPopup.isShowing()) {
+            mAddressPopup.dismiss();
+        }
         if (mAlternatesPopup != null && mAlternatesPopup.isShowing()) {
             mAlternatesPopup.dismiss();
         }
