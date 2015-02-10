@@ -9,7 +9,11 @@ import android.net.Uri;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.Nullable;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.text.util.Rfc822Tokenizer;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -83,8 +87,10 @@ public class DropdownChipLayouter {
     public View bindView(View convertView, ViewGroup parent, RecipientEntry entry, int position,
             AdapterType type, String constraint, StateListDrawable deleteDrawable) {
         // Default to show all the information
-        String displayName = entry.getDisplayName();
-        String destination = entry.getDestination();
+        CharSequence[] styledResults =
+                getStyledResults(constraint, entry.getDisplayName(), entry.getDestination());
+        CharSequence displayName = styledResults[0];
+        CharSequence destination = styledResults[1];
         boolean showImage = true;
         CharSequence destinationType = getDestinationType(entry);
 
@@ -329,6 +335,64 @@ public class DropdownChipLayouter {
      * {@link android.R.id#icon1} is returned.
      */
     protected @IdRes int getDeleteResId() { return android.R.id.icon1; }
+
+    /**
+     * Given a constraint and results, tries to find the constraint in those results, one at a time.
+     * A foreground font color style will be applied to the section that matches the constraint. As
+     * soon as a match has been found, no further matches are attempted.
+     *
+     * @param constraint A string that we will attempt to find within the results.
+     * @param results Strings that may contain the constraint. The order given is the order used to
+     *     search for the constraint.
+     *
+     * @return An array of CharSequences, the length determined by the length of results. Each
+     *     CharSequence will either be a styled SpannableString or just the input String.
+     */
+    protected CharSequence[] getStyledResults(@Nullable String constraint, String... results) {
+        if (isAllWhitespace(constraint)) {
+            return results;
+        }
+
+        CharSequence[] styledResults = new CharSequence[results.length];
+        boolean foundMatch = false;
+        for (int i = 0; i < results.length; i++) {
+            String result = results[i];
+            if (result == null) {
+                continue;
+            }
+
+            if (!foundMatch) {
+                int index = result.toLowerCase().indexOf(constraint.toLowerCase());
+                if (index != -1) {
+                    SpannableStringBuilder styled = SpannableStringBuilder.valueOf(result);
+                    ForegroundColorSpan highlightSpan =
+                            new ForegroundColorSpan(mContext.getResources().getColor(
+                                    R.color.chips_dropdown_text_highlighted));
+                    styled.setSpan(highlightSpan,
+                            index, index + constraint.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    styledResults[i] = styled;
+                    foundMatch = true;
+                    continue;
+                }
+            }
+            styledResults[i] = result;
+        }
+        return styledResults;
+    }
+
+    private static boolean isAllWhitespace(@Nullable String string) {
+        if (TextUtils.isEmpty(string)) {
+            return true;
+        }
+
+        for (int i = 0; i < string.length(); ++i) {
+            if (!Character.isWhitespace(string.charAt(i))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     /**
      * A holder class the view. Uses the getters in DropdownChipLayouter to find the id of the
