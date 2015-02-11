@@ -10,6 +10,7 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
+import android.support.v4.view.MarginLayoutParamsCompat;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -18,6 +19,7 @@ import android.text.util.Rfc822Tokenizer;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -45,10 +47,13 @@ public class DropdownChipLayouter {
     private final Context mContext;
     private ChipDeleteListener mDeleteListener;
     private Query mQuery;
+    private int mAutocompleteDividerMarginStart;
 
     public DropdownChipLayouter(LayoutInflater inflater, Context context) {
         mInflater = inflater;
         mContext = context;
+        mAutocompleteDividerMarginStart =
+                context.getResources().getDimensionPixelOffset(R.dimen.chip_wrapper_start_padding);
     }
 
     public void setQuery(Query query) {
@@ -59,6 +64,9 @@ public class DropdownChipLayouter {
         mDeleteListener = listener;
     }
 
+    public void setAutocompleteDividerMarginStart(int autocompleteDividerMarginStart) {
+        mAutocompleteDividerMarginStart = autocompleteDividerMarginStart;
+    }
 
     /**
      * Layouts and binds recipient information to the view. If convertView is null, inflates a new
@@ -119,6 +127,14 @@ public class DropdownChipLayouter {
                 // For BASE_RECIPIENT set all top dividers except for the first one to be GONE.
                 if (viewHolder.topDivider != null) {
                     viewHolder.topDivider.setVisibility(position == 0 ? View.VISIBLE : View.GONE);
+                    MarginLayoutParamsCompat.setMarginStart(
+                            (MarginLayoutParams) viewHolder.topDivider.getLayoutParams(),
+                            mAutocompleteDividerMarginStart);
+                }
+                if (viewHolder.bottomDivider != null) {
+                    MarginLayoutParamsCompat.setMarginStart(
+                            (MarginLayoutParams) viewHolder.bottomDivider.getLayoutParams(),
+                            mAutocompleteDividerMarginStart);
                 }
                 break;
             case RECIPIENT_ALTERNATES:
@@ -405,6 +421,7 @@ public class DropdownChipLayouter {
         public final ImageView imageView;
         public final ImageView deleteView;
         public final View topDivider;
+        public final View bottomDivider;
 
         public ViewHolder(View view) {
             displayNameView = (TextView) view.findViewById(getDisplayNameResId());
@@ -413,6 +430,7 @@ public class DropdownChipLayouter {
             imageView = (ImageView) view.findViewById(getPhotoResId());
             deleteView = (ImageView) view.findViewById(getDeleteResId());
             topDivider = view.findViewById(R.id.chip_autocomplete_top_divider);
+            bottomDivider = view.findViewById(R.id.chip_autocomplete_bottom_divider);
         }
     }
 }
