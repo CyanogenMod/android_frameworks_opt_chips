@@ -19,5 +19,5 @@
     <string name="more_string" msgid="8495478259330621990">"+<xliff:g id="COUNT">%1$s</xliff:g>"</string>
     <string name="copy_email" msgid="7869435992461603532">"इमेल ठेगानाको प्रतिलिपि बनाउनुहोस्"</string>
     <string name="copy_number" msgid="530057841276106843">"फोन नम्बरको प्रतिलिपि गर्नुहोस्"</string>
-    <string name="done" msgid="2356320650733788862">"फिर्ता हुनुहोस्"</string>
+    <string name="action_label" msgid="1318401633653605424">"फर्कनुहोस्"</string>
 </resources>
