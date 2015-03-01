@@ -39,6 +39,9 @@ import android.widget.Filter;
 import android.widget.Filterable;
 
 import com.android.ex.chips.DropdownChipLayouter.AdapterType;
+import com.android.ex.chips.DropdownChipLayouter.ChipAnimationCallback;
+import com.android.ex.chips.DropdownChipLayouter.ChipSuggestionsListener;
+import com.android.ex.chips.ResultAnimationDrawable.STATE;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -85,6 +88,8 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
 
     public static final int QUERY_TYPE_EMAIL = 0;
     public static final int QUERY_TYPE_PHONE = 1;
+
+    static final int SUGGESTED_ENTRY_DESTINATION_TYPE = -99;
 
     private final Queries.Query mQueryMode;
     private final int mQueryType;
@@ -174,6 +179,18 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
     }
 
     /**
+     * A temporary entry linked with an extra suggestion contact
+     * @hide
+     */
+    protected static class SuggestionEntry extends TemporaryEntry {
+        public SuggestionEntry(long id, String displayName, String address,
+                String name, long contactId) {
+            super(name, address, SUGGESTED_ENTRY_DESTINATION_TYPE, displayName, contactId, null,
+                    id, null, ContactsContract.DisplayNameSources.STRUCTURED_NAME, null);
+        }
+    }
+
+    /**
      * Used to pass results from {@link DefaultFilter#performFiltering(CharSequence)} to
      * {@link DefaultFilter#publishResults(CharSequence, android.widget.Filter.FilterResults)}
      */
@@ -224,7 +241,12 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
                 defaultDirectoryCursor = doQuery(constraint, mPreferredMaxResultCount,
                         null /* directoryId */);
 
-                if (defaultDirectoryCursor == null) {
+                // Allow to load additional suggested entries
+                Set<SuggestionEntry> suggestedEntries = loadSuggestedEntries(constraint,
+                        mPreferredMaxResultCount);
+
+                if (defaultDirectoryCursor == null &&
+                        (suggestedEntries == null || suggestedEntries.size() == 0)) {
                     if (DEBUG) {
                         Log.w(TAG, "null cursor returned for default Email filter query.");
                     }
@@ -238,12 +260,21 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
                             new ArrayList<RecipientEntry>();
                     final Set<String> existingDestinations = new HashSet<String>();
 
-                    while (defaultDirectoryCursor.moveToNext()) {
-                        // Note: At this point each entry doesn't contain any photo
-                        // (thus getPhotoBytes() returns null).
-                        putOneEntry(new TemporaryEntry(defaultDirectoryCursor,
-                                null /* directoryId */),
-                                true, entryMap, nonAggregatedEntries, existingDestinations);
+                    if (suggestedEntries != null) {
+                        for (TemporaryEntry suggestedEntry : suggestedEntries) {
+                            putOneEntry(suggestedEntry, true, entryMap,
+                                    nonAggregatedEntries, existingDestinations);
+                        }
+                    }
+
+                    if (defaultDirectoryCursor != null) {
+                        while (defaultDirectoryCursor.moveToNext()) {
+                            // Note: At this point each entry doesn't contain any photo
+                            // (thus getPhotoBytes() returns null).
+                            putOneEntry(new TemporaryEntry(defaultDirectoryCursor,
+                                    null /* directoryId */),
+                                    true, entryMap, nonAggregatedEntries, existingDestinations);
+                        }
                     }
 
                     // We'll copy this result to mEntry in publicResults() (run in the UX thread).
@@ -448,6 +479,58 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
     protected final int mPreferredMaxResultCount;
     private DropdownChipLayouter mDropdownChipLayouter;
 
+    /** @hide **/
+    public class SuggestionAddCallback {
+        private final @SuppressWarnings("unused") RecipientEntry mEntry;
+        private final View mView;
+
+        public SuggestionAddCallback(RecipientEntry entry, View v) {
+            mEntry = entry;
+            mView = v;
+        }
+
+        public void onSucess() {
+            mDropdownChipLayouter.animateSuggestion(mView, new ChipAnimationCallback() {
+                @Override
+                public void onAnimationEnded() {
+                    getFilter().filter(mCurrentConstraint);
+                }
+            }, STATE.SUCCESS, false);
+        }
+
+        public void onFailed() {
+            mDropdownChipLayouter.animateSuggestion(mView, null, STATE.ERROR, true);
+        }
+    }
+
+    /** @hide **/
+    protected class SuggestionRemoveCallback {
+        private final RecipientEntry mEntry;
+        private final View mView;
+
+        public SuggestionRemoveCallback(RecipientEntry entry, View v) {
+            mEntry = entry;
+            mView = v;
+        }
+
+        public void onSucess() {
+            mDropdownChipLayouter.animateSuggestion(mView, new ChipAnimationCallback() {
+                @Override
+                public void onAnimationEnded() {
+                    mEntries.remove(mEntry);
+                    mEntriesUpdatedObserver.onChanged(mEntries);
+                    notifyDataSetChanged();
+
+                    getFilter().filter(mCurrentConstraint);
+                }
+            }, STATE.SUCCESS, false);
+        }
+
+        public void onFailed() {
+            mDropdownChipLayouter.animateSuggestion(mView, null, STATE.ERROR, true);
+        }
+    }
+
     /**
      * {@link #mEntries} is responsible for showing every result for this Adapter. To
      * construct it, we use {@link #mEntryMap}, {@link #mNonAggregatedEntries}, and
@@ -562,6 +645,17 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
     public void setDropdownChipLayouter(DropdownChipLayouter dropdownChipLayouter) {
         mDropdownChipLayouter = dropdownChipLayouter;
         mDropdownChipLayouter.setQuery(mQueryMode);
+        mDropdownChipLayouter.setSuggestionsListener(new ChipSuggestionsListener() {
+            @Override
+            public void onDeleteSuggestionRequest(RecipientEntry entry, View v) {
+                onDeleteSuggestion(entry, new SuggestionRemoveCallback(entry, v));
+            }
+
+            @Override
+            public void onAddSuggestionRequest(RecipientEntry entry, View v) {
+                onAddSuggestion(entry, new SuggestionAddCallback(entry, v));
+            }
+        });
     }
 
     public DropdownChipLayouter getDropdownChipLayouter() {
@@ -732,7 +826,9 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
             return;
         }
 
-        existingDestinations.add(entry.destination);
+        if (entry.destinationType != SUGGESTED_ENTRY_DESTINATION_TYPE) {
+            existingDestinations.add(entry.destination);
+        }
 
         if (!isAggregatedEntry) {
             nonAggregatedEntries.add(RecipientEntry.constructTopLevelEntry(
@@ -788,7 +884,10 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
                 RecipientEntry entry = entryList.get(i);
                 entries.add(entry);
                 mPhotoManager.populatePhotoBytesAsync(entry, this);
-                validEntryCount++;
+                if (entry.getDestinationType() != SUGGESTED_ENTRY_DESTINATION_TYPE) {
+                    // Will trim array later
+                    validEntryCount++;
+                }
             }
             if (validEntryCount > mPreferredMaxResultCount) {
                 break;
@@ -805,6 +904,20 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
             }
         }
 
+        // Now remove suggestion entries (present in local or external directories)
+        for (int i = entries.size() - 1; i >= 0; i--) {
+            RecipientEntry e1 = entries.get(i);
+            for (int j = i - 1; j >= 0; j--) {
+                RecipientEntry e2 = entries.get(j);
+                if (e1.getDestination().equals(e2.getDestination())) {
+                    entries.remove(j);
+                }
+            }
+        }
+
+        if (entries.size() > mPreferredMaxResultCount) {
+            return entries.subList(0, mPreferredMaxResultCount);
+        }
         return entries;
     }
 
@@ -864,6 +977,21 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
                     + (end - start) + " ms");
         }
         return cursor;
+    }
+
+    /** @hide **/
+    protected Set<SuggestionEntry> loadSuggestedEntries(CharSequence constraint, int maxResults) {
+        return new HashSet<>();
+    }
+
+    /** @hide **/
+    protected void onAddSuggestion(RecipientEntry entry, SuggestionAddCallback cb) {
+        cb.onSucess();
+    }
+
+    /** @hide **/
+    protected void onDeleteSuggestion(RecipientEntry entry, SuggestionRemoveCallback cb) {
+        cb.onSucess();
     }
 
     // TODO: This won't be used at all. We should find better way to quit the thread..
