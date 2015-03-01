@@ -30,4 +30,5 @@
     <color name="chips_dropdown_text_activated">@android:color/white</color>
     <color name="chips_dropdown_text_highlighted">#757575</color>
 
+    <color name="chip_suggestion_action">#c3c3c3</color>
 </resources>
