@@ -39,7 +39,30 @@
 
         </LinearLayout>
 
-        <com.android.ex.chips.CircularImageView style="@style/ChipEndIconStyle" />
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:id="@+id/chips_recipients_icons_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <com.android.ex.chips.CircularImageView style="@style/ChipEndIconStyle" />
+
+                <com.android.ex.chips.CircularImageView
+                    android:id="@+id/chip_suggested_contact_add"
+                    style="@style/ChipAddSuggestedIconStyle" />
+
+                <com.android.ex.chips.CircularImageView
+                    android:id="@+id/chip_suggested_contact_delete"
+                    style="@style/ChipDeleteSuggestedIconStyle" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/chip_recipients_action_layout"
+                android:visibility="gone"
+                style="@style/ChipActionResultDrawableStyle"/>
+        </FrameLayout>
 
     </LinearLayout>
 

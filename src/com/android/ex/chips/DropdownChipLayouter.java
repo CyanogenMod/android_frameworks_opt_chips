@@ -1,5 +1,9 @@
 package com.android.ex.chips;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.animation.Animator.AnimatorListener;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -22,12 +26,17 @@ import android.text.util.Rfc822Tokenizer;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.LinearInterpolator;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.ex.chips.Queries.Query;
+import com.android.ex.chips.ResultAnimationDrawable.STATE;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A class that inflates and binds the views in the dropdown list from
@@ -64,6 +73,32 @@ public class DropdownChipLayouter {
     private final Context mContext;
     private ChipDeleteListener mDeleteListener;
     private PermissionRequestDismissedListener mPermissionRequestDismissedListener;
+
+    public interface ChipSuggestionsListener {
+        void onAddSuggestionRequest(RecipientEntry entry, View v);
+        void onDeleteSuggestionRequest(RecipientEntry entry, View v);
+    }
+
+    public interface ChipAnimationCallback {
+        void onAnimationEnded();
+    }
+
+    private final OnClickListener mSuggestionClickListener = new OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            View parent = (View) v.getParent().getParent();
+            RecipientEntry entry = (RecipientEntry) v.getTag();
+
+            if (v.getId() == R.id.chip_suggested_contact_add) {
+                mSuggestionsListener.onAddSuggestionRequest(entry, parent);
+            } else if (v.getId() == R.id.chip_suggested_contact_delete) {
+                mSuggestionsListener.onDeleteSuggestionRequest(entry, parent);
+            }
+        }
+    };
+
+    private ChipSuggestionsListener mSuggestionsListener;
+
     private Query mQuery;
     private int mAutocompleteDividerMarginStart;
 
@@ -88,6 +123,120 @@ public class DropdownChipLayouter {
 
     public void setAutocompleteDividerMarginStart(int autocompleteDividerMarginStart) {
         mAutocompleteDividerMarginStart = autocompleteDividerMarginStart;
+    }
+
+    public void setSuggestionsListener(ChipSuggestionsListener listener) {
+        mSuggestionsListener = listener;
+    }
+
+    void animateSuggestion(View v, final ChipAnimationCallback cb,
+            STATE state, final boolean backToView) {
+
+        View icons = v.findViewById(R.id.chips_recipients_icons_layout);
+        final ImageView action = (ImageView) v.findViewById(R.id.chip_recipients_action_layout);
+
+        int color = mContext.getResources().getColor(R.color.chip_suggestion_action);
+
+        final ResultAnimationDrawable dw = new ResultAnimationDrawable();
+        dw.setColors(color, color);
+        dw.setState(state);
+        dw.setInterpolation(0f);
+        dw.setDuration(250);
+        action.setImageDrawable(dw);
+
+        List<Animator> animators = new ArrayList<>();
+
+        // Fade the icons layout
+        Animator fadeOut1 = ObjectAnimator.ofFloat(icons, "alpha", 1.0f, 0.0f);
+        fadeOut1.setDuration(150);
+        fadeOut1.addListener(new AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                action.setVisibility(View.GONE);
+                action.setAlpha(1f);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                action.setVisibility(View.VISIBLE);
+                dw.start(); // 250 milliseconds
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+            }
+        });
+        animators.add(fadeOut1);
+
+        if (backToView) {
+            // Fade out action
+            Animator fadeOut2 = ObjectAnimator.ofFloat(action, "alpha", 1.0f, 0.0f);
+            fadeOut2.setDuration(150);
+            fadeOut2.setStartDelay(650);
+            animators.add(fadeOut2);
+
+            // Fade in to icons
+            Animator fadeIn = ObjectAnimator.ofFloat(icons, "alpha", 0.0f, 1.0f);
+            fadeIn.setDuration(150);
+            fadeIn.addListener(new AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    action.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    if (cb != null) {
+                        cb.onAnimationEnded();
+                    }
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {
+                }
+            });
+            animators.add(fadeIn);
+
+        } else {
+            // End animation (don't return to icons layout)
+            Animator end = ObjectAnimator.ofFloat(action, "alpha", 1.0f, 1.0f);
+            end.setDuration(150);
+            end.setStartDelay(650);
+            end.addListener(new AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    if (cb != null) {
+                        cb.onAnimationEnded();
+                    }
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {
+                }
+            });
+            animators.add(end);
+        }
+
+        AnimatorSet set = new AnimatorSet();
+        set.setInterpolator(new LinearInterpolator());
+        set.playSequentially(animators);
+        set.start();
     }
 
     /**
@@ -176,6 +325,20 @@ public class DropdownChipLayouter {
         bindTextToView(destination, viewHolder.destinationView);
         bindTextToView(destinationType, viewHolder.destinationTypeView);
         bindIconToView(showImage, entry, viewHolder.imageView, type);
+        if (entry.getDestinationType() == BaseRecipientAdapter.SUGGESTED_ENTRY_DESTINATION_TYPE) {
+            viewHolder.addSuggestionView.setTag(entry);
+            viewHolder.deleteSuggestionView.setTag(entry);
+
+            viewHolder.addSuggestionView.setVisibility(View.VISIBLE);
+            viewHolder.deleteSuggestionView.setVisibility(View.VISIBLE);
+            viewHolder.imageView.setVisibility(View.GONE);
+        } else {
+            bindIconToView(showImage, entry, viewHolder.imageView, type);
+
+            viewHolder.addSuggestionView.setVisibility(View.GONE);
+            viewHolder.deleteSuggestionView.setVisibility(View.GONE);
+            viewHolder.imageView.setVisibility(View.VISIBLE);
+        }
         bindDrawableToDeleteView(deleteDrawable, entry.getDisplayName(), viewHolder.deleteView);
         bindIndicatorToView(
                 entry.getIndicatorIconId(), entry.getIndicatorText(), viewHolder.indicatorView);
@@ -192,6 +355,12 @@ public class DropdownChipLayouter {
             setViewVisibility(viewHolder.permissionViewGroup, View.VISIBLE);
             setViewVisibility(viewHolder.permissionBottomDivider, View.VISIBLE);
         }
+
+        // Revert animations
+        viewHolder.iconsView.setAlpha(1.0f);
+        viewHolder.iconsView.setVisibility(View.VISIBLE);
+        viewHolder.actionView.setAlpha(1.0f);
+        viewHolder.actionView.setVisibility(View.GONE);
 
         return itemView;
     }
@@ -541,6 +710,10 @@ public class DropdownChipLayouter {
         public final TextView indicatorView;
         public final ImageView imageView;
         public final ImageView deleteView;
+        public final ImageView addSuggestionView;
+        public final ImageView deleteSuggestionView;
+        public final View iconsView;
+        public final View actionView;
         public final View topDivider;
         public final View bottomDivider;
         public final View permissionBottomDivider;
@@ -555,7 +728,6 @@ public class DropdownChipLayouter {
             destinationTypeView = (TextView) view.findViewById(getDestinationTypeResId());
             imageView = (ImageView) view.findViewById(getPhotoResId());
             deleteView = (ImageView) view.findViewById(getDeleteResId());
-            topDivider = view.findViewById(R.id.chip_autocomplete_top_divider);
 
             bottomDivider = view.findViewById(R.id.chip_autocomplete_bottom_divider);
             permissionBottomDivider = view.findViewById(R.id.chip_permission_bottom_divider);
@@ -565,6 +737,14 @@ public class DropdownChipLayouter {
             permissionViewGroup = (ViewGroup) view.findViewById(getPermissionGroupResId());
             permissionRequestDismissView =
                     (ImageView) view.findViewById(getPermissionRequestDismissResId());
+
+            addSuggestionView = (ImageView) view.findViewById(R.id.chip_suggested_contact_add);
+            deleteSuggestionView = (ImageView) view.findViewById(R.id.chip_suggested_contact_delete);
+            topDivider = view.findViewById(R.id.chips_recipients_icons_layout);
+            addSuggestionView.setOnClickListener(mSuggestionClickListener);
+            deleteSuggestionView.setOnClickListener(mSuggestionClickListener);
+            iconsView = view.findViewById(R.id.chips_recipients_icons_layout);
+            actionView = view.findViewById(R.id.chip_recipients_action_layout);
         }
     }
 }
