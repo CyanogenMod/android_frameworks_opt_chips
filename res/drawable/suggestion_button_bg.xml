@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-     Copyright (C) 2014 The Android Open Source Project
+<!-- Copyright (C) 2014 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -15,16 +14,6 @@
      limitations under the License.
 -->
 
-<resources>
-
-    <color name="chips_dropdown_background_activated">#4285f4</color>
-    <color name="chips_dropdown_background_pressed">#ededed</color>
-
-    <color name="autocomplete_divider_color">#cccccc</color>
-
-    <color name="chip_background">#f6f6f6</color>
-    <color name="chip_background_selected">#4285f4</color>
-    <color name="chip_background_invalid">#db4437</color>
-
-    <color name="chip_suggestion_action">#c3c3c3</color>
-</resources>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#40000000">
+</ripple>

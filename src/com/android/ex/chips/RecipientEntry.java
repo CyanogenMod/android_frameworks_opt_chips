@@ -249,9 +249,14 @@ public class RecipientEntry {
         return mLookupKey;
     }
 
+    /** @hide **/
+    protected String getAddress() {
+        return mDisplayName + " <" + mDestination + ">";
+    }
+
     @Override
     public String toString() {
-        return mDisplayName + " <" + mDestination + ">, isValid=" + mIsValid;
+        return getAddress() + ", isValid=" + mIsValid;
     }
 
     /**
