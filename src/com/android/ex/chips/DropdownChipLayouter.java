@@ -276,26 +276,37 @@ public class DropdownChipLayouter {
         bindTextToView(destination, viewHolder.destinationView);
         bindTextToView(destinationType, viewHolder.destinationTypeView);
         if (entry.getDestinationType() == BaseRecipientAdapter.SUGGESTED_ENTRY_DESTINATION_TYPE) {
-            viewHolder.addSuggestionView.setTag(entry);
-            viewHolder.deleteSuggestionView.setTag(entry);
-
-            viewHolder.addSuggestionView.setVisibility(View.VISIBLE);
-            viewHolder.deleteSuggestionView.setVisibility(View.VISIBLE);
+            if (viewHolder.addSuggestionView != null) {
+                viewHolder.addSuggestionView.setTag(entry);
+                viewHolder.addSuggestionView.setVisibility(View.VISIBLE);
+            }
+            if (viewHolder.deleteSuggestionView != null) {
+                viewHolder.deleteSuggestionView.setTag(entry);
+                viewHolder.deleteSuggestionView.setVisibility(View.VISIBLE);
+            }
             viewHolder.imageView.setVisibility(View.GONE);
         } else {
             bindIconToView(showImage, entry, viewHolder.imageView, type);
 
-            viewHolder.addSuggestionView.setVisibility(View.GONE);
-            viewHolder.deleteSuggestionView.setVisibility(View.GONE);
+            if (viewHolder.addSuggestionView != null) {
+                viewHolder.addSuggestionView.setVisibility(View.GONE);
+            }
+            if (viewHolder.deleteSuggestionView != null) {
+                viewHolder.deleteSuggestionView.setVisibility(View.GONE);
+            }
             viewHolder.imageView.setVisibility(View.VISIBLE);
         }
         bindDrawableToDeleteView(deleteDrawable, viewHolder.deleteView);
 
         // Revert animations
-        viewHolder.iconsView.setAlpha(1.0f);
-        viewHolder.iconsView.setVisibility(View.VISIBLE);
-        viewHolder.actionView.setAlpha(1.0f);
-        viewHolder.actionView.setVisibility(View.GONE);
+        if (viewHolder.iconsView != null) {
+            viewHolder.iconsView.setAlpha(1.0f);
+            viewHolder.iconsView.setVisibility(View.VISIBLE);
+        }
+        if (viewHolder.actionView != null) {
+            viewHolder.actionView.setAlpha(1.0f);
+            viewHolder.actionView.setVisibility(View.GONE);
+        }
 
         return itemView;
     }
@@ -513,11 +524,15 @@ public class DropdownChipLayouter {
             destinationTypeView = (TextView) view.findViewById(getDestinationTypeResId());
             imageView = (ImageView) view.findViewById(getPhotoResId());
             deleteView = (ImageView) view.findViewById(getDeleteResId());
-            addSuggestionView = (ImageView) view.findViewById(R.id.chip_suggested_contact_add);
-            deleteSuggestionView = (ImageView) view.findViewById(R.id.chip_suggested_contact_delete);
             topDivider = view.findViewById(R.id.chips_recipients_icons_layout);
-            addSuggestionView.setOnClickListener(mSuggestionClickListener);
-            deleteSuggestionView.setOnClickListener(mSuggestionClickListener);
+            addSuggestionView = (ImageView) view.findViewById(R.id.chip_suggested_contact_add);
+            if (addSuggestionView != null) {
+                addSuggestionView.setOnClickListener(mSuggestionClickListener);
+            }
+            deleteSuggestionView = (ImageView) view.findViewById(R.id.chip_suggested_contact_delete);
+            if (deleteSuggestionView != null) {
+                deleteSuggestionView.setOnClickListener(mSuggestionClickListener);
+            }
             iconsView = view.findViewById(R.id.chips_recipients_icons_layout);
             actionView = view.findViewById(R.id.chip_recipients_action_layout);
         }
