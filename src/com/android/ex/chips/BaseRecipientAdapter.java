@@ -989,8 +989,14 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
         // Now remove suggestion entries (present in local or external directories)
         for (int i = entries.size() - 1; i >= 0; i--) {
             RecipientEntry e1 = entries.get(i);
+            if (e1.getDestination() == null) {
+                continue;
+            }
             for (int j = i - 1; j >= 0; j--) {
                 RecipientEntry e2 = entries.get(j);
+                if (e2.getDestination() == null) {
+                    continue;
+                }
                 if (e1.getDestination().equals(e2.getDestination())) {
                     entries.remove(j);
                 }
