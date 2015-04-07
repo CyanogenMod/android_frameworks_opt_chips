@@ -34,5 +34,6 @@
         <attr name="selectedChipBackgroundColor" format="color" />
         <attr name="unselectedChipTextColor" format="color" />
         <attr name="selectedChipTextColor" format="color" />
+        <attr name="maxChips" format="integer" />
     </declare-styleable>
 </resources>
