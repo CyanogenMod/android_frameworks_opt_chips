@@ -31,5 +31,6 @@
             <enum name="bottom" value = "0"/>
             <enum name="baseline" value = "1"/>
         </attr>
+        <attr name="maxChips" format="integer" />
     </declare-styleable>
 </resources>
