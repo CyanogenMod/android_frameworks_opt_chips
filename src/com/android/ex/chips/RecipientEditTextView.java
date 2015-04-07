@@ -156,6 +156,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private boolean mDisableDelete;
     private int mMaxLines;
     private int mActionBarHeight;
+    private int mMaxChipsParsed;
 
     /**
      * Enumerator for avatar position. See attr.xml for more details.
@@ -963,6 +964,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             mActionBarHeight = TypedValue.complexToDimensionPixelSize(tv.data, getResources()
                     .getDisplayMetrics());
         }
+        mMaxChipsParsed = a.getInt(R.styleable.RecipientEditTextView_maxChips, MAX_CHIPS_PARSED);
 
         a.recycle();
     }
@@ -1057,7 +1059,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         synchronized (mPendingChips) {
             Editable editable = getText();
             // Tokenize!
-            if (mPendingChipsCount <= MAX_CHIPS_PARSED) {
+            if (mPendingChipsCount <= mMaxChipsParsed) {
                 for (int i = 0; i < mPendingChips.size(); i++) {
                     String current = mPendingChips.get(i);
                     int tokenStart = editable.toString().indexOf(current);
@@ -3132,5 +3134,30 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         float top;
         float right;
         float bottom;
+    }
+
+    /**
+     * Get the current max chips limits.
+     * @return The value used to cap the number of contacts that this field will tokenize.
+     */
+    protected int getMaxChipsParsed() {
+        return mMaxChipsParsed;
+    }
+
+    /**
+     * Set the current max chips limit.
+     * @param maxChipsParsed - This value will cap the number of contacts that this field will
+     *                       tokenize.
+     */
+    protected void setMaxChipsParsed(int maxChipsParsed) {
+        mMaxChipsParsed = maxChipsParsed;
+    }
+
+    /**
+     * Get whether we are still tokenizing input
+     * @return true if still tokenizing contacts, false otherwise
+     */
+    protected boolean isChipping() {
+        return !mNoChips;
     }
 }
