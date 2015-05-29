@@ -18,13 +18,12 @@
 package com.android.ex.chips;
 
 import android.annotation.TargetApi;
-import android.app.Dialog;
+import android.app.Activity;
+import android.app.DialogFragment;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnDismissListener;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -74,7 +73,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewParent;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
@@ -82,7 +80,6 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
 import android.widget.Filterable;
 import android.widget.ListAdapter;
 import android.widget.ListPopupWindow;
@@ -114,8 +111,8 @@ import java.util.regex.Pattern;
  */
 public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         OnItemClickListener, Callback, RecipientAlternatesAdapter.OnCheckedItemChangedListener,
-        GestureDetector.OnGestureListener, OnDismissListener, OnClickListener,
-        TextView.OnEditorActionListener, DropdownChipLayouter.ChipDeleteListener {
+        GestureDetector.OnGestureListener, TextView.OnEditorActionListener,
+        DropdownChipLayouter.ChipDeleteListener {
     private static final String TAG = "RecipientEditTextView";
 
     private static final char COMMIT_CHAR_COMMA = ',';
@@ -141,9 +138,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     private static final int MAX_CHIPS_PARSED = 50;
 
-    private int mSelectedChipTextColor;
     private int mUnselectedChipTextColor;
-    private int mSelectedChipBackgroundColor;
     private int mUnselectedChipBackgroundColor;
 
     // Work variables to avoid re-allocation on every typed character.
@@ -210,8 +205,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     // Chip copy fields.
     private GestureDetector mGestureDetector;
-    private Dialog mCopyDialog;
-    private String mCopyAddress;
 
     // Obtain the enclosing scroll view, if it exists, so that the view can be
     // scrolled to show the last line of chips content.
@@ -271,7 +264,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         setupPopupWindow(mAlternatesPopup);
         mAddressPopup = new ListPopupWindow(context);
         setupPopupWindow(mAddressPopup);
-        mCopyDialog = new Dialog(context);
         mAlternatesListener = new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView,View view, int position,
@@ -1001,17 +993,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 R.styleable.RecipientEditTextView_unselectedChipTextColor,
                 r.getColor(android.R.color.black));
 
-        mSelectedChipTextColor = a.getColor(
-                R.styleable.RecipientEditTextView_selectedChipTextColor,
-                r.getColor(android.R.color.white));
-
         mUnselectedChipBackgroundColor = a.getColor(
                 R.styleable.RecipientEditTextView_unselectedChipBackgroundColor,
                 r.getColor(R.color.chip_background));
 
-        mSelectedChipBackgroundColor = a.getColor(
-                R.styleable.RecipientEditTextView_selectedChipBackgroundColor,
-                r.getColor(R.color.chip_background_selected));
         a.recycle();
     }
 
@@ -1670,7 +1655,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         if (mSelectedChip == null) {
             mGestureDetector.onTouchEvent(event);
         }
-        if (mCopyAddress == null && action == MotionEvent.ACTION_UP) {
+        if (action == MotionEvent.ACTION_UP) {
             float x = event.getX();
             float y = event.getY();
             int offset = putOffsetInRange(x, y);
@@ -3030,26 +3015,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     }
 
     private void showCopyDialog(final String address) {
-        if (!mAttachedToWindow) {
+        final Context context = getContext();
+        if (!mAttachedToWindow || context == null || !(context instanceof Activity)) {
             return;
         }
-        mCopyAddress = address;
-        mCopyDialog.setTitle(address);
-        mCopyDialog.setContentView(R.layout.copy_chip_dialog_layout);
-        mCopyDialog.setCancelable(true);
-        mCopyDialog.setCanceledOnTouchOutside(true);
-        Button button = (Button)mCopyDialog.findViewById(android.R.id.button1);
-        button.setOnClickListener(this);
-        int btnTitleId;
-        if (isPhoneQuery()) {
-            btnTitleId = R.string.copy_number;
-        } else {
-            btnTitleId = R.string.copy_email;
-        }
-        String buttonTitle = getContext().getResources().getString(btnTitleId);
-        button.setText(buttonTitle);
-        mCopyDialog.setOnDismissListener(this);
-        mCopyDialog.show();
+
+        final DialogFragment fragment = CopyDialog.newInstance(address);
+        fragment.show(((Activity) context).getFragmentManager(), CopyDialog.TAG);
     }
 
     @Override
@@ -3067,20 +3039,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     public boolean onSingleTapUp(MotionEvent e) {
         // Do nothing.
         return false;
-    }
-
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        mCopyAddress = null;
-    }
-
-    @Override
-    public void onClick(View v) {
-        // Copy this to the clipboard.
-        ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(
-                Context.CLIPBOARD_SERVICE);
-        clipboard.setPrimaryClip(ClipData.newPlainText("", mCopyAddress));
-        mCopyDialog.dismiss();
     }
 
     protected boolean isPhoneQuery() {
