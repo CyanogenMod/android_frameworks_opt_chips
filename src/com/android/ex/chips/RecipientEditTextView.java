@@ -677,6 +677,15 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             Drawable overrideBackgroundDrawable, int backgroundColor) {
         final ChipBitmapContainer result = new ChipBitmapContainer();
 
+        Drawable indicatorIcon = null;
+        int indicatorPadding = 0;
+        if (contact.getIndicatorIconId() != -1) {
+            indicatorIcon = getResources().getDrawable(contact.getIndicatorIconId());
+            indicatorIcon.setBounds(0, 0,
+                    indicatorIcon.getIntrinsicWidth(), indicatorIcon.getIntrinsicHeight());
+            indicatorPadding = indicatorIcon.getBounds().width() + mChipTextEndPadding;
+        }
+
         Rect backgroundPadding = new Rect();
         if (overrideBackgroundDrawable != null) {
             overrideBackgroundDrawable.getPadding(backgroundPadding);
@@ -694,7 +703,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         paint.getTextWidths(" ", widths);
         CharSequence ellipsizedText = ellipsizeText(createChipDisplayText(contact), paint,
                 calculateAvailableWidth() - iconWidth - widths[0] - backgroundPadding.left
-                - backgroundPadding.right);
+                - backgroundPadding.right - indicatorPadding);
         int textWidth = (int) paint.measureText(ellipsizedText, 0, ellipsizedText.length());
 
         // Chip start padding is the same as the end padding if there is no contact image.
@@ -702,7 +711,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         // Make sure there is a minimum chip width so the user can ALWAYS
         // tap a chip without difficulty.
         int width = Math.max(iconWidth * 2, textWidth + startPadding + mChipTextEndPadding
-                + iconWidth + backgroundPadding.left + backgroundPadding.right);
+                + iconWidth + backgroundPadding.left + backgroundPadding.right + indicatorPadding);
 
         // Create the background of the chip.
         result.bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
@@ -724,10 +733,21 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
         // Draw the text vertically aligned
         int textX = shouldPositionAvatarOnRight() ?
-                mChipTextEndPadding + backgroundPadding.left :
-                width - backgroundPadding.right - mChipTextEndPadding - textWidth;
+                mChipTextEndPadding + backgroundPadding.left + indicatorPadding :
+                width - backgroundPadding.right - mChipTextEndPadding - textWidth -
+                indicatorPadding;
         canvas.drawText(ellipsizedText, 0, ellipsizedText.length(),
                 textX, getTextYOffset(height), paint);
+
+        if (indicatorIcon != null) {
+            int indicatorX = shouldPositionAvatarOnRight()
+                ? backgroundPadding.left + mChipTextEndPadding
+                : width - backgroundPadding.right - indicatorIcon.getBounds().width()
+                        - mChipTextEndPadding;
+            int indicatorY = height / 2 - indicatorIcon.getBounds().height() / 2;
+            indicatorIcon.getBounds().offsetTo(indicatorX, indicatorY);
+            indicatorIcon.draw(canvas);
+        }
 
         // Set the variables that are needed to draw the icon bitmap once it's loaded
         int iconX = shouldPositionAvatarOnRight() ? width - backgroundPadding.right - iconWidth :

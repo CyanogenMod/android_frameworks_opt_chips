@@ -74,6 +74,11 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+    <style name="ChipIndicatorTextStyle" parent="@style/ChipSubtitleStyle">
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:drawablePadding">4dp</item>
+    </style>
+
     <style name="ChipIconBaseStyle">
         <item name="android:id">@android:id/icon</item>
         <item name="android:layout_width">40dp</item>

@@ -76,6 +76,9 @@ public class RecipientEntry {
      */
     private byte[] mPhotoBytes;
 
+    private int mIndicatorIconId;
+    private String mIndicatorText;
+
     /** See {@link android.provider.ContactsContract.ContactsColumns#LOOKUP_KEY} */
     private final String mLookupKey;
 
@@ -97,6 +100,8 @@ public class RecipientEntry {
         mIsDivider = false;
         mIsValid = isValid;
         mLookupKey = lookupKey;
+        mIndicatorIconId = -1;
+        mIndicatorText = null;
     }
 
     public boolean isValid() {
@@ -260,5 +265,33 @@ public class RecipientEntry {
      */
     public boolean isSamePerson(final RecipientEntry entry) {
         return entry != null && mContactId == entry.mContactId;
+    }
+
+    /**
+     * Returns the resource ID for the indicator icon, or -1 if no icon should be displayed.
+     */
+    public int getIndicatorIconId() {
+        return mIndicatorIconId;
+    }
+
+    /**
+     * Sets the indicator icon to the given resource ID.  Set to -1 to display no icon.
+     */
+    public void setIndicatorIconId(int indicatorIconId) {
+        mIndicatorIconId = indicatorIconId;
+    }
+
+    /**
+     * Get the indicator text, or null if no text should be displayed.
+     */
+    public String getIndicatorText() {
+        return mIndicatorText;
+    }
+
+    /**
+     * Set the indicator text.  Set to null for no text to be displayed.
+     */
+    public void setIndicatorText(String indicatorText) {
+        mIndicatorText = indicatorText;
     }
 }
