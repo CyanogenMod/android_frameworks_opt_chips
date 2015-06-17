@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.support.annotation.DrawableRes;
@@ -154,6 +157,8 @@ public class DropdownChipLayouter {
         bindTextToView(destinationType, viewHolder.destinationTypeView);
         bindIconToView(showImage, entry, viewHolder.imageView, type);
         bindDrawableToDeleteView(deleteDrawable, entry.getDisplayName(), viewHolder.deleteView);
+        bindIndicatorToView(
+                entry.getIndicatorIconId(), entry.getIndicatorText(), viewHolder.indicatorView);
 
         return itemView;
     }
@@ -260,6 +265,26 @@ public class DropdownChipLayouter {
                         }
                     }
                 });
+            }
+        }
+    }
+
+    protected void bindIndicatorToView(int indicatorIconId, String indicatorText, TextView view) {
+        final Resources res = mContext.getResources();
+        if (view != null) {
+            if (indicatorText != null || indicatorIconId != -1) {
+                view.setVisibility(View.VISIBLE);
+                view.setText(indicatorText);
+                if (indicatorIconId != -1) {
+                    Drawable indicatorIcon = res.getDrawable(indicatorIconId).mutate();
+                    indicatorIcon.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
+                    view.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                            indicatorIcon, null, null, null);
+                } else {
+                    view.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, null, null);
+                }
+            } else {
+                view.setVisibility(View.GONE);
             }
         }
     }
@@ -418,6 +443,7 @@ public class DropdownChipLayouter {
         public final TextView displayNameView;
         public final TextView destinationView;
         public final TextView destinationTypeView;
+        public final TextView indicatorView;
         public final ImageView imageView;
         public final ImageView deleteView;
         public final View topDivider;
@@ -431,6 +457,7 @@ public class DropdownChipLayouter {
             deleteView = (ImageView) view.findViewById(getDeleteResId());
             topDivider = view.findViewById(R.id.chip_autocomplete_top_divider);
             bottomDivider = view.findViewById(R.id.chip_autocomplete_bottom_divider);
+            indicatorView = (TextView) view.findViewById(R.id.chip_indicator_text);
         }
     }
 }
