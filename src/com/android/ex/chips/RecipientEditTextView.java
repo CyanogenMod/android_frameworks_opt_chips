@@ -838,6 +838,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             // Draw the default chip background
             mWorkPaint.reset();
             mWorkPaint.setColor(backgroundColor);
+            mWorkPaint.setAntiAlias(true);
             final float radius = height / 2;
             canvas.drawRoundRect(new RectF(0, 0, width, height), radius, radius,
                     mWorkPaint);
