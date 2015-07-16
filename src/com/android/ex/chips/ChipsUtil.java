@@ -17,10 +17,10 @@
 package com.android.ex.chips;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Process;
 
 public class ChipsUtil {
 
@@ -54,7 +54,8 @@ public class ChipsUtil {
      */
     public static int checkPermission(Context context, String permission) {
         if (isRunningMncOrLater()) {
-            return context.checkSelfPermission(permission);
+            // Use "context.checkSelfPermission(permission)" once it's safe to move to M sdk
+            return context.checkPermission(permission, Process.myPid(), Process.myUid());
         } else {
             // Assume that we have permission before M.
             return PackageManager.PERMISSION_GRANTED;
