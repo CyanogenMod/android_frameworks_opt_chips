@@ -17,12 +17,14 @@
 package com.android.ex.chips;
 
 import android.accounts.Account;
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
@@ -50,6 +52,14 @@ import java.util.Set;
 
 /**
  * Adapter for showing a recipient list.
+ *
+ * <p>It checks whether all permissions are granted before doing
+ * query. If not all permissions in {@link ChipsUtil#REQUIRED_PERMISSIONS} are granted and
+ * {@link #mShowRequestPermissionsItem} is true it will return single entry that asks user to grant
+ * permissions to the app. Any app that uses this library should set this when it wants us to
+ * display that entry but then it should set
+ * {@link RecipientEditTextView.PermissionsRequestItemClickedListener} on
+ * {@link RecipientEditTextView} as well.
  */
 public class BaseRecipientAdapter extends BaseAdapter implements Filterable, AccountSpecifier,
         PhotoManager.PhotoManagerCallback {
@@ -195,6 +205,16 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
             this.existingDestinations = existingDestinations;
             this.paramsList = paramsList;
         }
+
+        private static DefaultFilterResult createResultWithNonAggregatedEntry(
+                RecipientEntry entry) {
+            return new DefaultFilterResult(
+                    Collections.singletonList(entry),
+                    new LinkedHashMap<Long, List<RecipientEntry>>() /* entryMap */,
+                    Collections.singletonList(entry) /* nonAggregatedEntries */,
+                    Collections.<String>emptySet() /* existingDestinations */,
+                    null /* paramsList */);
+        }
     }
 
     /**
@@ -211,14 +231,32 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
             }
 
             final FilterResults results = new FilterResults();
-            Cursor defaultDirectoryCursor = null;
-            Cursor directoryCursor = null;
 
             if (TextUtils.isEmpty(constraint)) {
                 clearTempEntries();
                 // Return empty results.
                 return results;
             }
+
+            if (!ChipsUtil.hasPermissions(mContext)) {
+                if (DEBUG) {
+                    Log.d(TAG, "No Contacts permission. mShowRequestPermissionsItem: "
+                            + mShowRequestPermissionsItem);
+                }
+                clearTempEntries();
+                if (!mShowRequestPermissionsItem) {
+                    // App doesn't want to show request permission entry. Returning empty results.
+                    return results;
+                }
+
+                // Return result with only permission request entry.
+                results.values = DefaultFilterResult.createResultWithNonAggregatedEntry(
+                        RecipientEntry.constructPermissionEntry(ChipsUtil.REQUIRED_PERMISSIONS));
+                results.count = 1;
+                return results;
+            }
+
+            Cursor defaultDirectoryCursor = null;
 
             try {
                 defaultDirectoryCursor = doQuery(constraint, mPreferredMaxResultCount,
@@ -261,9 +299,6 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
             } finally {
                 if (defaultDirectoryCursor != null) {
                     defaultDirectoryCursor.close();
-                }
-                if (directoryCursor != null) {
-                    directoryCursor.close();
                 }
             }
             return results;
@@ -311,7 +346,20 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
         }
     }
 
+    /**
+     * Returns the list of models for directory search  (using {@link DirectoryFilter}) or
+     * {@code null} when we don't need or can't search other directories.
+     */
     protected List<DirectorySearchParams> searchOtherDirectories(Set<String> existingDestinations) {
+        if (!ChipsUtil.hasPermissions(mContext)) {
+            // If we don't have permissions we can't search other directories.
+            if (DEBUG) {
+                Log.d(TAG, "Not searching other directories because we don't have required "
+                        + "permissions.");
+            }
+            return null;
+        }
+
         // After having local results, check the size of results. If the results are
         // not enough, we search remote directories, which will take longer time.
         final int limit = mPreferredMaxResultCount - existingDestinations.size();
@@ -491,6 +539,8 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
      */
     private PhotoManager mPhotoManager;
 
+    protected boolean mShowRequestPermissionsItem;
+
     /**
      * Handler specific for maintaining "Waiting for more contacts" message, which will be shown
      * when:
@@ -612,6 +662,20 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
     @Override
     public void setAccount(Account account) {
         mAccount = account;
+    }
+
+    /**
+     * Returns permissions that this adapter needs in order to provide results.
+     */
+    public String[] getRequiredPermissions() {
+        return ChipsUtil.REQUIRED_PERMISSIONS;
+    }
+
+    /**
+     * Sets whether to ask user to grant permission if they are missing.
+     */
+    public void setShowRequestPermissionsItem(boolean show) {
+        mShowRequestPermissionsItem = show;
     }
 
     /** Will be called from {@link AutoCompleteTextView} to prepare auto-complete list. */
@@ -852,6 +916,13 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
     }
 
     private Cursor doQuery(CharSequence constraint, int limit, Long directoryId) {
+        if (!ChipsUtil.hasPermissions(mContext)) {
+            if (DEBUG) {
+                Log.d(TAG, "Not doing query because we don't have required permissions.");
+            }
+            return null;
+        }
+
         final Uri.Builder builder = mQueryMode.getContentFilterUri().buildUpon()
                 .appendPath(constraint.toString())
                 .appendQueryParameter(ContactsContract.LIMIT_PARAM_KEY,

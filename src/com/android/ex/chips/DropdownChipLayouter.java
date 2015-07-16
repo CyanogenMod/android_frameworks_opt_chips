@@ -21,6 +21,7 @@ import android.text.style.ForegroundColorSpan;
 import android.text.util.Rfc822Tokenizer;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.ImageView;
@@ -46,9 +47,23 @@ public class DropdownChipLayouter {
         void onChipDelete();
     }
 
+    /**
+     * Listener that handles the dismisses of the entries of the
+     * {@link RecipientEntry#ENTRY_TYPE_PERMISSION_REQUEST} type.
+     */
+    public interface PermissionRequestDismissedListener {
+
+        /**
+         * Callback that occurs when user dismisses the item that asks user to grant permissions to
+         * the app.
+         */
+        void onPermissionRequestDismissed();
+    }
+
     private final LayoutInflater mInflater;
     private final Context mContext;
     private ChipDeleteListener mDeleteListener;
+    private PermissionRequestDismissedListener mPermissionRequestDismissedListener;
     private Query mQuery;
     private int mAutocompleteDividerMarginStart;
 
@@ -65,6 +80,10 @@ public class DropdownChipLayouter {
 
     public void setDeleteListener(ChipDeleteListener listener) {
         mDeleteListener = listener;
+    }
+
+    public void setPermissionRequestDismissedListener(PermissionRequestDismissedListener listener) {
+        mPermissionRequestDismissedListener = listener;
     }
 
     public void setAutocompleteDividerMarginStart(int autocompleteDividerMarginStart) {
@@ -109,7 +128,7 @@ public class DropdownChipLayouter {
 
         final ViewHolder viewHolder = new ViewHolder(itemView);
 
-        // Hide some information depending on the entry type and adapter type
+        // Hide some information depending on the adapter type.
         switch (type) {
             case BASE_RECIPIENT:
                 if (TextUtils.isEmpty(displayName) || TextUtils.equals(displayName, destination)) {
@@ -159,6 +178,17 @@ public class DropdownChipLayouter {
         bindDrawableToDeleteView(deleteDrawable, entry.getDisplayName(), viewHolder.deleteView);
         bindIndicatorToView(
                 entry.getIndicatorIconId(), entry.getIndicatorText(), viewHolder.indicatorView);
+        bindPermissionRequestDismissView(viewHolder.permissionRequestDismissView);
+
+        // Hide some view groups depending on the entry type
+        final int entryType = entry.getEntryType();
+        if (entryType == RecipientEntry.ENTRY_TYPE_PERSON) {
+            setViewVisibility(viewHolder.personViewGroup, View.VISIBLE);
+            setViewVisibility(viewHolder.permissionViewGroup, View.GONE);
+        } else if (entryType == RecipientEntry.ENTRY_TYPE_PERMISSION_REQUEST) {
+            setViewVisibility(viewHolder.personViewGroup, View.GONE);
+            setViewVisibility(viewHolder.permissionViewGroup, View.VISIBLE);
+        }
 
         return itemView;
     }
@@ -269,23 +299,44 @@ public class DropdownChipLayouter {
         }
     }
 
-    protected void bindIndicatorToView(int indicatorIconId, String indicatorText, TextView view) {
-        final Resources res = mContext.getResources();
+    protected void bindIndicatorToView(
+            @DrawableRes int indicatorIconId, String indicatorText, TextView view) {
         if (view != null) {
-            if (indicatorText != null || indicatorIconId != -1) {
-                view.setVisibility(View.VISIBLE);
+            if (indicatorText != null || indicatorIconId != 0) {
                 view.setText(indicatorText);
-                if (indicatorIconId != -1) {
-                    Drawable indicatorIcon = res.getDrawable(indicatorIconId).mutate();
+                view.setVisibility(View.VISIBLE);
+                final Drawable indicatorIcon;
+                if (indicatorIconId != 0) {
+                    indicatorIcon = mContext.getDrawable(indicatorIconId).mutate();
                     indicatorIcon.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
-                    view.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                            indicatorIcon, null, null, null);
                 } else {
-                    view.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, null, null);
+                    indicatorIcon = null;
                 }
+                view.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                        indicatorIcon, null, null, null);
             } else {
                 view.setVisibility(View.GONE);
             }
+        }
+    }
+
+    protected void bindPermissionRequestDismissView(ImageView view) {
+        if (view == null) {
+            return;
+        }
+        view.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mPermissionRequestDismissedListener != null) {
+                    mPermissionRequestDismissedListener.onPermissionRequestDismissed();
+                }
+            }
+        });
+    }
+
+    protected void setViewVisibility(View view, int visibility) {
+        if (view != null) {
+            view.setVisibility(visibility);
         }
     }
 
@@ -339,6 +390,13 @@ public class DropdownChipLayouter {
     }
 
     /**
+     * Returns an id for the ViewGroup in an item View that contains the person ui elements.
+     */
+    protected @IdRes int getPersonGroupResId() {
+        return R.id.chip_person_wrapper;
+    }
+
+    /**
      * Returns an id for TextView in an item View for showing a display name. By default
      * {@link android.R.id#title} is returned.
      */
@@ -376,6 +434,22 @@ public class DropdownChipLayouter {
      * {@link android.R.id#icon1} is returned.
      */
     protected @IdRes int getDeleteResId() { return android.R.id.icon1; }
+
+    /**
+     * Returns an id for the ViewGroup in an item View that contains the request permission ui
+     * elements.
+     */
+    protected @IdRes int getPermissionGroupResId() {
+        return R.id.chip_permission_wrapper;
+    }
+
+    /**
+     * Returns an id for ImageView in an item View for dismissing the permission request. In default
+     * {@link android.R.id#icon2} is returned.
+     */
+    protected @IdRes int getPermissionRequestDismissResId() {
+        return android.R.id.icon2;
+    }
 
     /**
      * Given a constraint and results, tries to find the constraint in those results, one at a time.
@@ -440,6 +514,7 @@ public class DropdownChipLayouter {
      * corresponding views.
      */
     protected class ViewHolder {
+        public final ViewGroup personViewGroup;
         public final TextView displayNameView;
         public final TextView destinationView;
         public final TextView destinationTypeView;
@@ -449,7 +524,11 @@ public class DropdownChipLayouter {
         public final View topDivider;
         public final View bottomDivider;
 
+        public final ViewGroup permissionViewGroup;
+        public final ImageView permissionRequestDismissView;
+
         public ViewHolder(View view) {
+            personViewGroup = (ViewGroup) view.findViewById(getPersonGroupResId());
             displayNameView = (TextView) view.findViewById(getDisplayNameResId());
             destinationView = (TextView) view.findViewById(getDestinationResId());
             destinationTypeView = (TextView) view.findViewById(getDestinationTypeResId());
@@ -458,6 +537,10 @@ public class DropdownChipLayouter {
             topDivider = view.findViewById(R.id.chip_autocomplete_top_divider);
             bottomDivider = view.findViewById(R.id.chip_autocomplete_bottom_divider);
             indicatorView = (TextView) view.findViewById(R.id.chip_indicator_text);
+
+            permissionViewGroup = (ViewGroup) view.findViewById(getPermissionGroupResId());
+            permissionRequestDismissView =
+                    (ImageView) view.findViewById(getPermissionRequestDismissResId());
         }
     }
 }

@@ -37,6 +37,6 @@
     </style>
 
     <style name="ChipDeleteIconStyle" parent="@style/ChipDeleteIconBaseStyle">
-        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingStart">@dimen/chip_icon_padding</item>
     </style>
 </resources>

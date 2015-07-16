@@ -28,5 +28,6 @@
     <color name="chips_dropdown_text_default">#212121</color>
     <color name="chips_dropdown_text_activated">@android:color/white</color>
     <color name="chips_dropdown_text_highlighted">#757575</color>
+    <color name="chips_dropdown_permission_text">#4285f4</color>
 
 </resources>
