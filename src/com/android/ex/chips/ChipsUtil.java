@@ -45,7 +45,7 @@ public class ChipsUtil {
      */
     public static boolean isRunningMncOrLater() {
         // TODO: Update to use M once it's finalized in VERSION_CODES
-        return Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1;
+        return Build.VERSION.SDK_INT > 22;
     }
 
     /**
@@ -54,7 +54,7 @@ public class ChipsUtil {
      */
     public static int checkPermission(Context context, String permission) {
         if (isRunningMncOrLater()) {
-            // Use "context.checkSelfPermission(permission)" once it's safe to move to M sdk
+            // TODO: Use "context.checkSelfPermission(permission)" once it's safe to move to M sdk
             return context.checkPermission(permission, Process.myPid(), Process.myUid());
         } else {
             // Assume that we have permission before M.
