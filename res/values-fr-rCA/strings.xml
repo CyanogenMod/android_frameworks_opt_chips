@@ -24,4 +24,5 @@
     <string name="dropdown_delete_button_desc" msgid="8506791557733906887">"Supprimer <xliff:g id="CONTACT">%s</xliff:g> des destinataires"</string>
     <string name="chips_action_copy" msgid="1929144660075507103">"Copier"</string>
     <string name="chips_action_cancel" msgid="6077877438943543501">"Annuler"</string>
+    <string name="chips_permission_text" msgid="1978301259208877495">"Autoriser les suggestions de contacts"</string>
 </resources>

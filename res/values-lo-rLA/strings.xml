@@ -24,4 +24,5 @@
     <string name="dropdown_delete_button_desc" msgid="8506791557733906887">"ເອົາ <xliff:g id="CONTACT">%s</xliff:g> ອອກ​ໄປ​ຈາກ​ຜູ້​ຮັບ"</string>
     <string name="chips_action_copy" msgid="1929144660075507103">"ສຳເນົາ"</string>
     <string name="chips_action_cancel" msgid="6077877438943543501">"​ຍົກ​ເລີກ"</string>
+    <string name="chips_permission_text" msgid="1978301259208877495">"ອະ​ນຸ​ຍາດ​ການ​ແນະ​ນຳ​ລາຍ​ຊື່"</string>
 </resources>

@@ -24,4 +24,5 @@
     <string name="dropdown_delete_button_desc" msgid="8506791557733906887">"從收件者名單中移除<xliff:g id="CONTACT">%s</xliff:g>"</string>
     <string name="chips_action_copy" msgid="1929144660075507103">"複製"</string>
     <string name="chips_action_cancel" msgid="6077877438943543501">"取消"</string>
+    <string name="chips_permission_text" msgid="1978301259208877495">"允許聯絡人建議"</string>
 </resources>

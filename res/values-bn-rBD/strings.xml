@@ -24,4 +24,5 @@
     <string name="dropdown_delete_button_desc" msgid="8506791557733906887">"প্রাপকদের কাছ থেকে <xliff:g id="CONTACT">%s</xliff:g> সরান"</string>
     <string name="chips_action_copy" msgid="1929144660075507103">"প্রতিলিপি করুন"</string>
     <string name="chips_action_cancel" msgid="6077877438943543501">"বাতিল করুন"</string>
+    <string name="chips_permission_text" msgid="1978301259208877495">"পরিচিতিগুলির প্রস্তাবনায় অনুমতি দিন"</string>
 </resources>

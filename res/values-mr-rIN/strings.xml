@@ -24,4 +24,5 @@
     <string name="dropdown_delete_button_desc" msgid="8506791557733906887">"प्राप्तकर्त्यांमधून <xliff:g id="CONTACT">%s</xliff:g> काढा"</string>
     <string name="chips_action_copy" msgid="1929144660075507103">"कॉपी करा"</string>
     <string name="chips_action_cancel" msgid="6077877438943543501">"रद्द करा"</string>
+    <string name="chips_permission_text" msgid="1978301259208877495">"संपर्क सूचनांना अनुमती द्या"</string>
 </resources>

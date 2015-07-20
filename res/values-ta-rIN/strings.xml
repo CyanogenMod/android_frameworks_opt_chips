@@ -24,4 +24,5 @@
     <string name="dropdown_delete_button_desc" msgid="8506791557733906887">"பெறுநர்களிலிருந்து <xliff:g id="CONTACT">%s</xliff:g>ஐ அகற்றும்"</string>
     <string name="chips_action_copy" msgid="1929144660075507103">"நகலெடு"</string>
     <string name="chips_action_cancel" msgid="6077877438943543501">"ரத்துசெய்"</string>
+    <string name="chips_permission_text" msgid="1978301259208877495">"தொடர்புகளின் பரிந்துரைகளை அனுமதிக்கவும்"</string>
 </resources>

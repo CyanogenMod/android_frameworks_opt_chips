@@ -24,4 +24,5 @@
     <string name="dropdown_delete_button_desc" msgid="8506791557733906887">"Alisin si <xliff:g id="CONTACT">%s</xliff:g> sa mga tatanggap"</string>
     <string name="chips_action_copy" msgid="1929144660075507103">"Kopyahin"</string>
     <string name="chips_action_cancel" msgid="6077877438943543501">"Kanselahin"</string>
+    <string name="chips_permission_text" msgid="1978301259208877495">"Payagan ang mga suhestyon sa mga contact"</string>
 </resources>
