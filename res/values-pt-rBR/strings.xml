@@ -17,12 +17,12 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="more_string" msgid="8495478259330621990">"+<xliff:g id="COUNT">%1$d</xliff:g>"</string>
-    <string name="copy_email" msgid="7869435992461603532">"Kopiér e-postadressen"</string>
-    <string name="copy_number" msgid="530057841276106843">"Kopiér telefonnummeret"</string>
-    <string name="action_label" msgid="1318401633653605424">"Gå tilbake"</string>
-    <string name="accessbility_suggestion_dropdown_opened" msgid="3231589819168382515">"Kontaktforslag er åpnet"</string>
-    <string name="dropdown_delete_button_desc" msgid="8506791557733906887">"Fjern <xliff:g id="CONTACT">%s</xliff:g> fra mottakere"</string>
-    <string name="chips_action_copy" msgid="1929144660075507103">"Kopiér"</string>
-    <string name="chips_action_cancel" msgid="6077877438943543501">"Avbryt"</string>
-    <string name="chips_permission_text" msgid="1978301259208877495">"Tillat forslag til kontakter"</string>
+    <string name="copy_email" msgid="7869435992461603532">"Copiar endereço de e-mail"</string>
+    <string name="copy_number" msgid="530057841276106843">"Copiar número de telefone"</string>
+    <string name="action_label" msgid="1318401633653605424">"Enter"</string>
+    <string name="accessbility_suggestion_dropdown_opened" msgid="3231589819168382515">"Sugestões de contato ativadas"</string>
+    <string name="dropdown_delete_button_desc" msgid="8506791557733906887">"Remover <xliff:g id="CONTACT">%s</xliff:g> dos destinatários"</string>
+    <string name="chips_action_copy" msgid="1929144660075507103">"Copiar"</string>
+    <string name="chips_action_cancel" msgid="6077877438943543501">"Cancelar"</string>
+    <string name="chips_permission_text" msgid="1978301259208877495">"Permitir sugestões de contatos"</string>
 </resources>
