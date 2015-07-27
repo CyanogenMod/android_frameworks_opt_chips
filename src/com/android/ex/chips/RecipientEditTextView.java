@@ -27,6 +27,7 @@ import android.content.DialogInterface.OnDismissListener;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
@@ -50,7 +51,6 @@ import android.os.Parcelable;
 import android.telephony.PhoneNumberUtils;
 import android.text.Editable;
 import android.text.InputType;
-import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -82,6 +82,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.Filterable;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListPopupWindow;
 import android.widget.ListView;
@@ -135,7 +136,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     // TODO: get correct number/ algorithm from with UX.
     // Visible for testing.
-    /*package*/ static final int CHIP_LIMIT = 2;
+    /*package*/ static final int CHIP_LIMIT = 4;
 
     private static final int MAX_CHIPS_PARSED = 50;
 
@@ -182,7 +183,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private OnItemClickListener mAlternatesListener;
 
     private DrawableRecipientChip mSelectedChip;
-    private Bitmap mDefaultContactPhoto;
     private ReplacementDrawableSpan mMoreChip;
     private TextView mMoreItem;
 
@@ -210,6 +210,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private ScrollView mScrollView;
     private boolean mTriedGettingScrollView;
     private boolean mDragEnabled = false;
+    private boolean mShowCopyDialogEnabled = true;
 
     private boolean mAttachedToWindow;
 
@@ -353,6 +354,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return false;
     }
 
+    // Cache this since there is no point in reading from the resource every time.
+    String mActionLabel = null;
     @Override
     public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
         InputConnection connection = super.onCreateInputConnection(outAttrs);
@@ -368,7 +371,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
 
         outAttrs.actionId = EditorInfo.IME_ACTION_DONE;
-        outAttrs.actionLabel = getContext().getString(R.string.action_label);
+        mActionLabel = (mActionLabel == null) ? getContext().getString(R.string.action_label) :
+                mActionLabel;
+        outAttrs.actionLabel = mActionLabel;
         return connection;
     }
 
@@ -585,7 +590,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     private void expand() {
         if (mShouldShrink) {
-            setMaxLines(Integer.MAX_VALUE);
+            setMaxLines(mMaxLines);
         }
         removeMoreChip();
         setCursorVisible(true);
@@ -633,7 +638,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * @param paint The paint to use to draw the bitmap.
      */
     private Bitmap createUnselectedChip(RecipientEntry contact, TextPaint paint) {
-        paint.setColor(getContext().getResources().getColor(android.R.color.black));
+        paint.setColor(getContext().getResources().getColor(R.color.chip_text_color));
         ChipBitmapContainer bitmapContainer = createChipBitmap(contact, paint,
                 getChipBackground(contact), getDefaultChipBackgroundColor(contact));
 
@@ -734,6 +739,24 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return isRtl ? !assignedPosition : assignedPosition;
     }
 
+    private void drawDefaultContactPhoto(String displayName, String address,
+            ChipBitmapContainer bitmapContainer) {
+        float textSize = getResources().getDimension(R.dimen
+                .chip_small_avatar_imageview_textSize);
+        Bitmap photo = getDefaultContactPhoto(displayName, address, textSize);
+        drawIcon(bitmapContainer, photo);
+        // The caller might originated from a background task. However, if the
+        // background task has already completed, the view might be already drawn
+        // on the UI but the callback would happen on the background thread.
+        // So if we are on a background thread, post an invalidate call to the UI.
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            // The view might not redraw itself since it's loaded asynchronously
+            invalidate();
+        } else {
+            postInvalidate();
+        }
+    }
+
     /**
      * Returns the avatar icon to use for this recipient entry. Returns null if we don't want to
      * draw an icon for this recipient.
@@ -772,10 +795,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                     @Override
                     public void onPhotoBytesAsyncLoadFailed() {
                         // TODO: can the scaled down default photo be cached?
-                        tryDrawAndInvalidate(mDefaultContactPhoto);
+                        drawDefaultContactPhoto(contact.getDisplayName(), contact.getAddress(),
+                                bitmapContainer);
                     }
 
-                    private void tryDrawAndInvalidate(Bitmap icon) {
+                    void tryDrawAndInvalidate(Bitmap icon) {
                         drawIcon(bitmapContainer, icon);
                         // The caller might originated from a background task. However, if the
                         // background task has already completed, the view might be already drawn
@@ -795,11 +819,124 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                     }
                 });
             } else {
+
                 final Bitmap icon = BitmapFactory.decodeByteArray(origPhotoBytes, 0,
                         origPhotoBytes.length);
                 drawIcon(bitmapContainer, icon);
             }
+        } else {
+
+            int color = getAccentColorForContact(contact.getAddress());
+
+            // hacky way to get the size
+            Drawable d = getResources().getDrawable(R.drawable.ic_contact_picture);
+            int w = d.getIntrinsicWidth();
+            int h = d.getIntrinsicHeight();
+
+            // Create bitmap
+            final Bitmap icon = Bitmap.createBitmap(w, h, Config.ARGB_8888);
+
+            // Make canvas and set contact accent color
+            Canvas canvas = new Canvas(icon);
+            canvas.drawColor(color);
+
+            // Get proper drawable and setup dimensions
+            d = getResources().getDrawable(R.drawable.ic_person_white_24dp);
+            w = canvas.getWidth();
+            h = canvas.getHeight();
+            d.setBounds(w / 5, h / 5, w / 5 * 4, h / 5 * 4);
+            d.draw(new Canvas(icon));
+            drawIcon(bitmapContainer, icon);
+
         }
+    }
+
+    /**
+     * This provides an interface for anything subclassing to provide a color for an unknown
+     * contact chip
+     *
+     * @param number {@link String}
+     * @return {@link Integer}
+     */
+    protected int getAccentColorForContact(String number) {
+        return Color.GREEN; // default to green for lack of better color
+    }
+
+    /**
+     * This provides an interface for anything subclassing to provide the avatar image for a
+     * contact
+     *
+     * @param entry {@link RecipientEntry}
+     * @param imageView {@link ImageView}
+     * @param textSizeInDp float this should already be scaled by the caller!
+     */
+    /* package */ void bindContactAvatarImageView(RecipientEntry entry, ImageView imageView, float
+            textSizeInDp) {
+
+        // no view, no need to work
+        if (imageView == null) {
+            return ;
+        }
+
+        Bitmap bitmap = getDefaultContactPhoto(entry.getDisplayName(), entry.getAddress(),
+                textSizeInDp);
+        imageView.setImageBitmap(bitmap);
+
+    }
+
+    /**
+     * This provides an interface for anything subclassing to provide the avatar image for a
+     * contact
+     *
+     * @param displayName {@link String}
+     * @param address {@link String}
+     * @param textSizeInDp float this should already be scaled by the caller!
+     */
+    /* package */ Bitmap getDefaultContactPhoto(String displayName, String address, float
+            textSizeInDp) {
+
+        // vars
+        int color = getAccentColorForContact(address);
+        String firstLetter = "?";
+        if (!TextUtils.isEmpty(displayName)){
+            firstLetter = displayName.substring(0, 1).toUpperCase();
+        }
+
+        // hacky way to get the size
+        Drawable d = getResources().getDrawable(R.drawable.ic_contact_picture);
+        int w = d.getIntrinsicWidth();
+        int h = d.getIntrinsicHeight();
+
+        // Create a bitmap and canvas for paint
+        final Bitmap icon;
+        try {
+            icon = Bitmap.createBitmap(w, h, Config.ARGB_8888);
+        } catch (OutOfMemoryError oome) {
+            Log.e(TAG, "Not enough memory to create icon!");
+            return null;
+        }
+
+        Canvas canvas = new Canvas(icon);
+
+        // Build paint
+        Paint p = new Paint();
+        p.setAntiAlias(true);
+        p.setDither(true);
+        p.setColor(color);
+        p.setStrokeWidth(1);
+        p.setTextSize(textSizeInDp);
+        p.setTextScaleX(0.95f);
+        float letterWidth = p.measureText(firstLetter);
+
+        // Draw background circle
+        canvas.drawCircle(w/2, h/2,w/2, p);
+
+        // Draw first letter
+        p.setColor(Color.WHITE);
+        canvas.drawText(firstLetter, (w/2) - (letterWidth/2), (h/2) + (textSizeInDp/3), p);
+
+        return icon;
+
     }
 
     /**
@@ -851,7 +988,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         mWorkPaint.setStyle(Style.STROKE);
         mWorkPaint.setStrokeWidth(borderWidth);
         mWorkPaint.setAntiAlias(true);
-        canvas.drawCircle(dst.centerX(), dst.centerY(), dst.width() / 2f - borderWidth / 2, mWorkPaint);
+        canvas.drawCircle(dst.centerX(), dst.centerY(), dst.width() / 2f - borderWidth / 2,
+                mWorkPaint);
 
         mWorkPaint.reset();
     }
@@ -943,8 +1081,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         if (overridePadding >= 0) {
             mChipTextEndPadding = overridePadding;
         }
-
-        mDefaultContactPhoto = BitmapFactory.decodeResource(r, R.drawable.ic_contact_picture);
 
         mMoreItem = (TextView) LayoutInflater.from(getContext()).inflate(R.layout.more_item, null);
 
@@ -1074,6 +1210,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                         if (tokenEnd < editable.length() - 2
                                 && editable.charAt(tokenEnd) == COMMIT_CHAR_COMMA) {
                             tokenEnd++;
+                        }
+                        if (Log.isLoggable(TAG, Log.VERBOSE)) {
+                            Log.v(TAG,
+                                    "handlePendingChips()::createReplacementChip(" + tokenStart
+                                            + ", " + tokenEnd + ", " + editable + ", [" +
+                                            (i < CHIP_LIMIT) +
+                                            " or " + !mShouldShrink + "])");
                         }
                         createReplacementChip(tokenStart, tokenEnd, editable, i < CHIP_LIMIT
                                 || !mShouldShrink);
@@ -1724,7 +1867,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         // Construct the StateListDrawable from deleteDrawable
         StateListDrawable deleteDrawable = new StateListDrawable();
         if (!mDisableDelete) {
-            deleteDrawable.addState(new int[]{android.R.attr.state_activated}, mChipDelete);
+            deleteDrawable.addState(new int[] { android.R.attr.state_activated }, mChipDelete);
         }
         deleteDrawable.addState(new int[0], null);
         return deleteDrawable;
@@ -1837,6 +1980,18 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     /*package*/ String createChipDisplayText(RecipientEntry entry) {
         String display = entry.getDisplayName();
         String address = entry.getDestination();
+        if (display != null && !display.equals(address)) {
+            if (!TextUtils.isEmpty(display)) {
+                String[] parts = display.split(" ");
+                if (parts.length > 0) {
+                    display = parts[0];
+                }
+                if (parts.length > 1) {
+                    display += " " + parts[1].substring(0, 1);
+                    display += ".";
+                }
+            }
+        }
         if (TextUtils.isEmpty(display) || TextUtils.equals(display, address)) {
             display = null;
         }
@@ -1993,6 +2148,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return moreSpans != null && moreSpans.length > 0 ? moreSpans[0] : null;
     }
 
+    private static Paint sCirclePaint = new Paint();
+
+    static {
+        sCirclePaint.setColor(Color.WHITE);
+        sCirclePaint.setAntiAlias(true);
+    }
+
     private MoreImageSpan createMoreSpan(int count) {
         String moreText = String.format(mMoreItem.getText().toString(), count);
         mWorkPaint.set(getPaint());
@@ -2003,12 +2165,15 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         final int height = (int) mChipHeight;
         Bitmap drawable = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(drawable);
-        int adjustedHeight = height;
-        Layout layout = getLayout();
-        if (layout != null) {
-            adjustedHeight -= layout.getLineDescent(0);
-        }
-        canvas.drawText(moreText, 0, moreText.length(), 0, adjustedHeight, mWorkPaint);
+        int adjustedHeight = (height / 3) * 2;
+
+        // Draw the default chip background
+        final float radius = height / 2;
+        canvas.drawRoundRect(new RectF(0, 0, width, height), radius, radius, sCirclePaint);
+
+        // Draw the text
+        canvas.drawText(moreText, 0, moreText.length(), mMoreItem.getPaddingLeft(), adjustedHeight,
+                mWorkPaint);
 
         Drawable result = new BitmapDrawable(getResources(), drawable);
         result.setBounds(0, 0, width, height);
@@ -2920,7 +3085,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             if (mDragEnabled) {
                 // Start drag-and-drop for the selected chip.
                 startDrag(currentChip);
-            } else {
+            } else if (mShowCopyDialogEnabled) {
                 // Copy the selected chip email address.
                 showCopyDialog(currentChip.getEntry().getDestination());
             }
@@ -2966,6 +3131,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      */
     public void enableDrag() {
         mDragEnabled = true;
+    }
+
+    /**
+     * Disables copy dialog for long press
+     */
+    public void enableCopyDialog(boolean enable) {
+        mShowCopyDialogEnabled = enable;
     }
 
     /**
