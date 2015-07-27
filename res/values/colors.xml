@@ -22,8 +22,11 @@
 
     <color name="autocomplete_divider_color">#cccccc</color>
 
-    <color name="chip_background">#f6f6f6</color>
+    <color name="chip_background">#ffffff</color>
     <color name="chip_background_selected">#4285f4</color>
     <color name="chip_background_invalid">#db4437</color>
 
+    <color name="chip_suggestion_action">#c3c3c3</color>
+
+    <color name="chip_text_color">#6d5f5b</color>
 </resources>

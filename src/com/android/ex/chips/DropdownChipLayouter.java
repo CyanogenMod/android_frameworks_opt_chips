@@ -8,9 +8,11 @@ import android.net.Uri;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
+import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,12 +20,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.ex.chips.Queries.Query;
+import com.android.ex.chips.ResultAnimationDrawable.STATE;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * A class that inflates and binds the views in the dropdown list from
  * RecipientEditTextView.
  */
 public class DropdownChipLayouter {
+
+    private static final String TAG = DropdownChipLayouter.class.getSimpleName();
+
     /**
      * The type of adapter that is requesting a chip layout.
      */
@@ -39,12 +49,27 @@ public class DropdownChipLayouter {
 
     private final LayoutInflater mInflater;
     private final Context mContext;
+    private final RecipientEditTextView mRecipientEditTextView;
     private ChipDeleteListener mDeleteListener;
     private Query mQuery;
 
     public DropdownChipLayouter(LayoutInflater inflater, Context context) {
+        this(inflater, context, null);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param inflater {@link LayoutInflater}
+     * @param context {@link Context}
+     * @param recipientEditTextView {@link RecipientEditTextView} so we can get access to some
+     * functions that are possibly implemented in subclasses
+     */
+    public DropdownChipLayouter(LayoutInflater inflater, Context context, RecipientEditTextView
+            recipientEditTextView) {
         mInflater = inflater;
         mContext = context;
+        mRecipientEditTextView = recipientEditTextView;
     }
 
     public void setQuery(Query query) {
@@ -83,12 +108,35 @@ public class DropdownChipLayouter {
         // Default to show all the information
         String displayName = entry.getDisplayName();
         String destination = entry.getDestination();
+        if (!TextUtils.isEmpty(destination)) {
+            destination = destination.substring(2, destination.length());
+            destination = PhoneNumberUtils.formatNumberToE164(destination,
+                    Locale.getDefault().getCountry());
+        }
+
         boolean showImage = true;
-        CharSequence destinationType = getDestinationType(entry);
+        String destinationType = null;
+        CharSequence sequence = getDestinationType(entry);
+        if (sequence != null) {
+            destinationType = sequence.toString();
+            destinationType = destinationType.substring(0, 1).toUpperCase() + destinationType
+                    .substring(1, destinationType.length()).toLowerCase();
+        }
+
+        if (Log.isLoggable(TAG, Log.DEBUG)) {
+            Log.d(TAG, "Display Name       : " + displayName);
+            Log.d(TAG, "Search Constraint  : " + constraint);
+            Log.d(TAG, "Destination Address: " + destination);
+            Log.d(TAG, "Destination Type   : " + destinationType);
+        }
 
         final View itemView = reuseOrInflateView(convertView, parent, type);
 
         final ViewHolder viewHolder = new ViewHolder(itemView);
+
+        // This will reset the icon for "alternate" numbers when the view is recycled and doesn't
+        // need an image displayed
+        viewHolder.imageView.setImageResource(0);
 
         // Hide some information depending on the entry type and adapter type
         switch (type) {
@@ -130,7 +178,12 @@ public class DropdownChipLayouter {
         }
 
         // Bind the information to the view
-        bindTextToView(displayName, viewHolder.displayNameView);
+        if (viewHolder.displayNameView instanceof TextViewSnippet) {
+            bindTextToViewSnippet(displayName, constraint,
+                    (TextViewSnippet) viewHolder.displayNameView);
+        } else {
+            bindTextToView(displayName, viewHolder.displayNameView);
+        }
         bindTextToView(destination, viewHolder.destinationView);
         bindTextToView(destinationType, viewHolder.destinationTypeView);
         bindIconToView(showImage, entry, viewHolder.imageView, type);
@@ -178,6 +231,29 @@ public class DropdownChipLayouter {
         }
     }
 
+
+    /**
+     * Binds the text to the given
+     * {@link com.android.ex.chips.TextViewSnippet}.
+     * If the text was null, hides the text view.
+     *
+     * @param text {@link CharSequence} full text
+     * @param target {@link String} target search text
+     * @param view {@link com.android.ex.chips.TextViewSnippet}
+     */
+    protected void bindTextToViewSnippet(CharSequence text, String target, TextViewSnippet view) {
+        if (view == null) {
+            return;
+        }
+
+        if (!TextUtils.isEmpty(text)) {
+            view.setText(text.toString(), target);
+            view.setVisibility(View.VISIBLE);
+        } else {
+            view.setVisibility(View.GONE);
+        }
+    }
+
     /**
      * Binds the avatar icon to the image view. If we don't want to show the image, hides the
      * image view.
@@ -189,6 +265,8 @@ public class DropdownChipLayouter {
         }
 
         if (showImage) {
+            float textSize = mContext.getResources().getDimension(R.dimen
+                    .chip_avatar_imageview_textSize);
             switch (type) {
                 case BASE_RECIPIENT:
                     byte[] photoBytes = entry.getPhotoBytes();
@@ -197,7 +275,12 @@ public class DropdownChipLayouter {
                             photoBytes.length);
                         view.setImageBitmap(photo);
                     } else {
-                        view.setImageResource(getDefaultPhotoResId());
+                        if (mRecipientEditTextView != null) {
+                            mRecipientEditTextView.bindContactAvatarImageView(entry, view,
+                                    textSize);
+                        } else {
+                            view.setImageResource(getDefaultPhotoResId());
+                        }
                     }
                     break;
                 case RECIPIENT_ALTERNATES:
@@ -207,7 +290,12 @@ public class DropdownChipLayouter {
                         // as it may be too slow to get immediately.
                         view.setImageURI(thumbnailUri);
                     } else {
-                        view.setImageResource(getDefaultPhotoResId());
+                        if (mRecipientEditTextView != null) {
+                            mRecipientEditTextView.bindContactAvatarImageView(entry, view,
+                                    textSize);
+                        } else {
+                            view.setImageResource(getDefaultPhotoResId());
+                        }
                     }
                     break;
                 case SINGLE_RECIPIENT:
