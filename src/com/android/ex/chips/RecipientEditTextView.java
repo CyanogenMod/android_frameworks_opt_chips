@@ -962,19 +962,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     }
 
     /**
-     * Calculate the bottom of the line the chip will be located on using:
-     * 1) which line the chip appears on
-     * 2) the height of a chip
-     * 3) padding built into the edit text view
-     */
-    private int calculateOffsetFromBottom(int line) {
-        // Line offsets start at zero.
-        int actualLine = getLineCount() - (line + 1);
-        return -((actualLine * ((int) mChipHeight) + getPaddingBottom()) + getPaddingTop())
-                + getDropDownVerticalOffset();
-    }
-
-    /**
      * Calculate the offset from bottom of the EditText to top of the provided line.
      */
     private int calculateOffsetFromBottomToTop(int line) {
@@ -1778,7 +1765,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return new RecipientAlternatesAdapter(getContext(), chip.getContactId(),
                 chip.getDirectoryId(), chip.getLookupKey(), chip.getDataId(),
                 getAdapter().getQueryType(), this, mDropdownChipLayouter,
-                constructStateListDeleteDrawable());
+                constructStateListDeleteDrawable(), getAdapter().getPermissionsCheckListener());
     }
 
     private ListAdapter createSingleAddressAdapter(DrawableRecipientChip currentChip) {
