@@ -9,6 +9,7 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.text.TextUtils;
+import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -119,7 +120,12 @@ public class DropdownChipLayouter {
                 }
                 break;
             case SINGLE_RECIPIENT:
-                destination = Rfc822Tokenizer.tokenize(entry.getDestination())[0].getAddress();
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(entry.getDestination());
+
+                if (tokens.length > 0) {
+                    destination = tokens[0].getAddress();
+                }
+
                 destinationType = null;
         }
 
