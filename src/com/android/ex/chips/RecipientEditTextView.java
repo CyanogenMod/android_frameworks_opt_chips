@@ -122,12 +122,12 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private static final String SEPARATOR = String.valueOf(COMMIT_CHAR_COMMA)
             + String.valueOf(COMMIT_CHAR_SPACE);
 
-    // This pattern comes from android.util.Patterns. It has been tweaked to handle a "1" before
-    // parens, so numbers such as "1 (425) 222-2342" match.
+    // This pattern comes from android.util.Patterns. It has been tweaked to handle a "1" or "8"
+    // before parens, so numbers such as "1 (425) 222-2342" match.
     private static final Pattern PHONE_PATTERN
             = Pattern.compile(                                  // sdd = space, dot, or dash
             "(\\+[0-9]+[\\- \\.]*)?"                    // +<digits><sdd>*
-                    + "(1?[ ]*\\([0-9]+\\)[\\- \\.]*)?"         // 1(<digits>)<sdd>*
+                    + "([18]?[ ]*\\([0-9]+\\)[\\- \\.]*)?"         // (1|8)(<digits>)<sdd>*
                     + "([0-9][0-9\\- \\.][0-9\\- \\.]+[0-9])"); // <digit><digit|sdd>+<digit>
 
     private static final int DISMISS = "dismiss".hashCode();
