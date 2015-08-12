@@ -44,6 +44,12 @@
         <item name="android:layout_marginLeft">@dimen/chip_wrapper_start_padding</item>
     </style>
 
+    <style name="ChipAutocompleteDividerStyle.Bottom.PermissionItem">
+        <item name="android:background">@drawable/chip_autocomplete_divider_background</item>
+        <item name="android:layout_height">3dp</item>
+        <item name="android:layout_marginLeft">0dp</item>
+    </style>
+
     <style name="ChipTextViewLayoutStyle">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>

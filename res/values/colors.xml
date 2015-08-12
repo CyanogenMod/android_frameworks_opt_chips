@@ -21,6 +21,7 @@
     <color name="chips_dropdown_background_pressed">#ededed</color>
 
     <color name="autocomplete_divider_color">#cccccc</color>
+    <color name="autocomplete_bottom_shadow_start">#40000000</color>
 
     <color name="chip_background">#f6f6f6</color>
     <color name="chip_background_invalid">#db4437</color>
