@@ -59,4 +59,9 @@
         android:id="@+id/chip_autocomplete_bottom_divider"
         style="@style/ChipAutocompleteDividerStyle" />
 
+    <View
+        android:id="@+id/chip_permission_bottom_divider"
+        android:visibility="gone"
+        style="@style/ChipAutocompleteDividerStyle.PermissionItem" />
+
 </LinearLayout>
