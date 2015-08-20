@@ -534,6 +534,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         baseAdapter.registerUpdateObserver(new BaseRecipientAdapter.EntriesUpdatedObserver() {
             @Override
             public void onChanged(List<RecipientEntry> entries) {
+                int suggestionCount = entries == null ? 0 : entries.size();
+
                 // Scroll the chips field to the top of the screen so
                 // that the user can see as many results as possible.
                 if (entries != null && entries.size() > 0) {
@@ -542,8 +544,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                     // the count at the bottom of this function.
                     if (mCurrentSuggestionCount == 0) {
                         // Announce the new number of possible choices for accessibility.
-                        announceForAccessibilityCompat(getContext().getString(
-                                R.string.accessbility_suggestion_dropdown_opened));
+                        announceForAccessibilityCompat(
+                                getSuggestionDropdownOpenedVerbalization(suggestionCount));
                     }
                 }
 
@@ -561,10 +563,17 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                             getDropDownVerticalOffset());
                 }
 
-                mCurrentSuggestionCount = entries == null ? 0 : entries.size();
+                mCurrentSuggestionCount = suggestionCount;
             }
         });
         baseAdapter.setDropdownChipLayouter(mDropdownChipLayouter);
+    }
+
+    /**
+     * Return the accessibility verbalization when the suggestion dropdown is opened.
+     */
+    public String getSuggestionDropdownOpenedVerbalization(int suggestionCount) {
+        return getResources().getString(R.string.accessbility_suggestion_dropdown_opened);
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
