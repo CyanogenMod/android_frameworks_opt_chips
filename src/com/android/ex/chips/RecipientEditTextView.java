@@ -2027,7 +2027,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
         // Now, count total addresses.
         start = 0;
-        int tokenCount = mPendingChipsCount;
+        int tokenCount = countTokens(text);
         MoreImageSpan moreSpan = createMoreSpan(tokenCount - CHIP_LIMIT);
         SpannableString chipText = new SpannableString(text.subSequence(end, text.length()));
         chipText.setSpan(moreSpan, 0, chipText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
