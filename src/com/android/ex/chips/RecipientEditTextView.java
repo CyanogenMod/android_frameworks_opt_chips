@@ -354,8 +354,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return false;
     }
 
-    // Cache this since there is no point in reading from the resource every time.
-    String mActionLabel = null;
     @Override
     public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
         InputConnection connection = super.onCreateInputConnection(outAttrs);
@@ -371,9 +369,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
 
         outAttrs.actionId = EditorInfo.IME_ACTION_DONE;
-        mActionLabel = (mActionLabel == null) ? getContext().getString(R.string.action_label) :
-                mActionLabel;
-        outAttrs.actionLabel = mActionLabel;
         return connection;
     }
 
