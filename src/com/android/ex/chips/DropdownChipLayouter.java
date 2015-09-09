@@ -7,7 +7,9 @@ import android.animation.Animator.AnimatorListener;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.StateListDrawable;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IdRes;
@@ -240,7 +242,7 @@ public class DropdownChipLayouter {
      */
     public View bindView(View convertView, ViewGroup parent, RecipientEntry entry, int position,
         AdapterType type, String constraint) {
-        return bindView(convertView, parent, entry, position, type, constraint, null);
+        return bindView(convertView, parent, entry, position, type, constraint, null, false);
     }
 
     /**
@@ -248,7 +250,8 @@ public class DropdownChipLayouter {
      * @param deleteDrawable
      */
     public View bindView(View convertView, ViewGroup parent, RecipientEntry entry, int position,
-            AdapterType type, String constraint, StateListDrawable deleteDrawable) {
+            AdapterType type, String constraint, Drawable deleteDrawable, boolean
+            needInvisibleNotGone) {
         // Default to show all the information
         String displayName = entry.getDisplayName();
         String destination = entry.getDestination();
@@ -268,10 +271,14 @@ public class DropdownChipLayouter {
         }
 
         if (Log.isLoggable(TAG, Log.DEBUG)) {
+            Log.d(TAG, "Convert View       : " + convertView);
+            Log.d(TAG, "Parent View        : " + parent);
+            Log.d(TAG, "Position           : " + position);
             Log.d(TAG, "Display Name       : " + displayName);
             Log.d(TAG, "Search Constraint  : " + constraint);
             Log.d(TAG, "Destination Address: " + destination);
             Log.d(TAG, "Destination Type   : " + destinationType);
+            Log.d(TAG, "Delete Drawable    : " + deleteDrawable);
         }
 
         final View itemView = reuseOrInflateView(convertView, parent, type);
@@ -351,7 +358,7 @@ public class DropdownChipLayouter {
             }
             viewHolder.imageView.setVisibility(View.VISIBLE);
         }
-        bindDrawableToDeleteView(deleteDrawable, viewHolder.deleteView);
+        bindDrawableToDeleteView(deleteDrawable, viewHolder.deleteView, needInvisibleNotGone);
 
         // Revert animations
         if (viewHolder.iconsView != null) {
@@ -483,24 +490,35 @@ public class DropdownChipLayouter {
         }
     }
 
-    protected void bindDrawableToDeleteView(final StateListDrawable drawable, ImageView view) {
+    protected void bindDrawableToDeleteView(final Drawable drawable, ImageView view, boolean
+            needInvisibleNotGone) {
+
         if (view == null) {
             return;
         }
+
+        if (needInvisibleNotGone) {
+            view.setImageDrawable(new ColorDrawable(Color.TRANSPARENT));
+            view.setOnClickListener(null);
+            view.setVisibility(View.INVISIBLE);
+        } else {
+            view.setVisibility(View.VISIBLE);
+        }
+
         if (drawable == null) {
             view.setVisibility(View.GONE);
         }
 
-        view.setImageDrawable(drawable);
-        if (mDeleteListener != null) {
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (drawable.getCurrent() != null) {
+        if (drawable != null) {
+            view.setImageDrawable(drawable);
+            if (mDeleteListener != null) {
+                view.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
                         mDeleteListener.onChipDelete();
                     }
-                }
-            });
+                });
+            }
         }
     }
 

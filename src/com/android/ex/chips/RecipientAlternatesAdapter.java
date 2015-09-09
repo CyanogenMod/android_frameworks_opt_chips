@@ -21,7 +21,9 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
-import android.graphics.drawable.StateListDrawable;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
@@ -66,7 +68,7 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
     public static final int QUERY_TYPE_PHONE = 1;
     private final Long mDirectoryId;
     private DropdownChipLayouter mDropdownChipLayouter;
-    private final StateListDrawable mDeleteDrawable;
+    private final Drawable mDeleteDrawable;
 
     private static final Map<String, String> sCorrectedPhotoUris = new HashMap<String, String>();
 
@@ -377,7 +379,7 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
 
     public RecipientAlternatesAdapter(Context context, long contactId, Long directoryId,
             String lookupKey, long currentId, int queryMode, OnCheckedItemChangedListener listener,
-            DropdownChipLayouter dropdownChipLayouter, StateListDrawable deleteDrawable) {
+            DropdownChipLayouter dropdownChipLayouter, Drawable deleteDrawable) {
         super(context,
                 getCursorForConstruction(context, contactId, directoryId, lookupKey, queryMode), 0);
         mCurrentId = currentId;
@@ -591,26 +593,26 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         Cursor cursor = getCursor();
         cursor.moveToPosition(position);
-        if (convertView == null) {
-            convertView = mDropdownChipLayouter.newView(AdapterType.RECIPIENT_ALTERNATES);
-        }
         if (cursor.getLong(Queries.Query.DATA_ID) == mCurrentId) {
             mCheckedItemPosition = position;
             if (mCheckedItemChangedListener != null) {
                 mCheckedItemChangedListener.onCheckedItemChanged(mCheckedItemPosition);
             }
         }
-        bindView(convertView, convertView.getContext(), cursor);
-        return convertView;
+        return super.getView(position, convertView, parent);
     }
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         int position = cursor.getPosition();
         RecipientEntry entry = getRecipientEntry(position);
-
-        mDropdownChipLayouter.bindView(view, null, entry, position,
-                AdapterType.RECIPIENT_ALTERNATES, null, mDeleteDrawable);
+        if (position == mCheckedItemPosition) {
+            mDropdownChipLayouter.bindView(view, null, entry, position,
+                    AdapterType.RECIPIENT_ALTERNATES, null, mDeleteDrawable, false);
+        } else {
+             mDropdownChipLayouter.bindView(view, null, entry, position,
+                    AdapterType.RECIPIENT_ALTERNATES, null, mDeleteDrawable, true);
+        }
     }
 
     @Override
