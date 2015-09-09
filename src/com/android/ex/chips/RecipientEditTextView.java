@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.res.Resources;
+import android.content.res.Resources.NotFoundException;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -41,7 +42,6 @@ import android.graphics.RectF;
 import android.graphics.Shader.TileMode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.StateListDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
@@ -1825,6 +1825,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 // regardless of the position of the chip tapped.
                 alternatesPopup.setAnchorView((mAlternatePopupAnchor != null) ?
                         mAlternatePopupAnchor : RecipientEditTextView.this);
+                alternatesPopup.setWidth(getResources().getDimensionPixelSize(
+                        R.dimen.chip_popup_width));
                 alternatesPopup.setVerticalOffset(bottomOffset);
                 alternatesPopup.setAdapter(result);
                 alternatesPopup.setOnItemClickListener(mAlternatesListener);
@@ -1857,13 +1859,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 mDropdownChipLayouter, constructStateListDeleteDrawable());
     }
 
-    private StateListDrawable constructStateListDeleteDrawable() {
-        // Construct the StateListDrawable from deleteDrawable
-        StateListDrawable deleteDrawable = new StateListDrawable();
-        if (!mDisableDelete) {
-            deleteDrawable.addState(new int[] { android.R.attr.state_activated }, mChipDelete);
+    private Drawable constructStateListDeleteDrawable() {
+        Drawable deleteDrawable = null;
+        try {
+            deleteDrawable = getContext().getResources().getDrawable(R.drawable.ic_cancel_wht_24dp);
+        } catch (NotFoundException e) {
+            Log.w(TAG, "Unable to find drawable....weird....");
         }
-        deleteDrawable.addState(new int[0], null);
         return deleteDrawable;
     }
 

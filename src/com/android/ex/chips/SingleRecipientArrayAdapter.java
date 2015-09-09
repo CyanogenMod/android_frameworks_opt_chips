@@ -17,7 +17,7 @@
 package com.android.ex.chips;
 
 import android.content.Context;
-import android.graphics.drawable.StateListDrawable;
+import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -26,7 +26,7 @@ import com.android.ex.chips.DropdownChipLayouter.AdapterType;
 
 class SingleRecipientArrayAdapter extends ArrayAdapter<RecipientEntry> {
     private final DropdownChipLayouter mDropdownChipLayouter;
-    private final StateListDrawable mDeleteDrawable;
+    private final Drawable mDeleteDrawable;
 
     public SingleRecipientArrayAdapter(Context context, RecipientEntry entry,
         DropdownChipLayouter dropdownChipLayouter) {
@@ -34,7 +34,7 @@ class SingleRecipientArrayAdapter extends ArrayAdapter<RecipientEntry> {
     }
 
     public SingleRecipientArrayAdapter(Context context, RecipientEntry entry,
-            DropdownChipLayouter dropdownChipLayouter, StateListDrawable deleteDrawable) {
+            DropdownChipLayouter dropdownChipLayouter, Drawable deleteDrawable) {
         super(context,
                 dropdownChipLayouter.getAlternateItemLayoutResId(AdapterType.SINGLE_RECIPIENT),
                 new RecipientEntry[] { entry });
@@ -46,6 +46,6 @@ class SingleRecipientArrayAdapter extends ArrayAdapter<RecipientEntry> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         return mDropdownChipLayouter.bindView(convertView, parent, getItem(position), position,
-                AdapterType.SINGLE_RECIPIENT, null, mDeleteDrawable);
+                AdapterType.SINGLE_RECIPIENT, null, mDeleteDrawable, true);
     }
 }
