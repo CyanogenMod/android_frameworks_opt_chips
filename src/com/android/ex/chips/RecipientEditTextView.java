@@ -1975,18 +1975,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     /*package*/ String createChipDisplayText(RecipientEntry entry) {
         String display = entry.getDisplayName();
         String address = entry.getDestination();
-        if (display != null && !display.equals(address)) {
-            if (!TextUtils.isEmpty(display)) {
-                String[] parts = display.split(" ");
-                if (parts.length > 0) {
-                    display = parts[0];
-                }
-                if (parts.length > 1) {
-                    display += " " + parts[1].substring(0, 1);
-                    display += ".";
-                }
-            }
-        }
         if (TextUtils.isEmpty(display) || TextUtils.equals(display, address)) {
             display = null;
         }
