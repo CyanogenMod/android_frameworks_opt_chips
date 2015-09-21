@@ -195,7 +195,7 @@ public class RecipientEntry {
                 null /* permissions */);
     }
 
-    public static RecipientEntry constructPermissionEntry(String[] mPermissions) {
+    public static RecipientEntry constructPermissionEntry(String[] permissions) {
         return new RecipientEntry(
                 ENTRY_TYPE_PERMISSION_REQUEST,
                 "" /* displayName */,
@@ -209,7 +209,7 @@ public class RecipientEntry {
                 true /* isFirstLevel*/,
                 false /* isValid */,
                 null /* lookupKey */,
-                mPermissions);
+                permissions);
     }
 
     /**
