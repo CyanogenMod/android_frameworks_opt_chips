@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--  Copyright (C) 2011 The Android Open Source Project
+<!--  Copyright (C) 2013 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="more_string" msgid="8495478259330621990">"+<xliff:g id="COUNT">%1$d</xliff:g>"</string>
-    <string name="copy_email" msgid="7869435992461603532">"Copiați adresa de e-mail"</string>
-    <string name="copy_number" msgid="530057841276106843">"Copiați numărul de telefon"</string>
-    <string name="action_label" msgid="1318401633653605424">"Enter"</string>
-    <string name="accessbility_suggestion_dropdown_opened" msgid="3231589819168382515">"Sugestii de persoane de contact disponibile"</string>
-    <string name="dropdown_delete_button_desc" msgid="8506791557733906887">"Eliminați <xliff:g id="CONTACT">%s</xliff:g> din destinatari"</string>
+    <string name="email_addresses" msgid="5320415175940315400">"Endereços de e-mail"</string>
+    <string name="phone_numbers" msgid="7836326833170390688">"Números de telefone"</string>
 </resources>
