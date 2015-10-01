@@ -117,8 +117,7 @@ public class DropdownChipLayouter {
     public View bindView(View convertView, ViewGroup parent, RecipientEntry entry, int position,
             AdapterType type, String constraint, StateListDrawable deleteDrawable) {
         // Default to show all the information
-        CharSequence[] styledResults =
-                getStyledResults(constraint, entry.getDisplayName(), entry.getDestination());
+        CharSequence[] styledResults = getStyledResults(constraint, entry);
         CharSequence displayName = styledResults[0];
         CharSequence destination = styledResults[1];
         boolean showImage = true;
@@ -451,6 +450,22 @@ public class DropdownChipLayouter {
      */
     protected @IdRes int getPermissionRequestDismissResId() {
         return android.R.id.icon2;
+    }
+
+    /**
+     * Given a constraint and a recipient entry, tries to find the constraint in the name and
+     * destination in the recipient entry. A foreground font color style will be applied to the
+     * section that matches the constraint. As soon as a match has been found, no further matches
+     * are attempted.
+     *
+     * @param constraint A string that we will attempt to find within the results.
+     * @param entry The recipient entry to style results for.
+     *
+     * @return An array of CharSequences, the length determined by the length of results. Each
+     *     CharSequence will either be a styled SpannableString or just the input String.
+     */
+    protected CharSequence[] getStyledResults(@Nullable String constraint, RecipientEntry entry) {
+      return getStyledResults(constraint, entry.getDisplayName(), entry.getDestination());
     }
 
     /**
