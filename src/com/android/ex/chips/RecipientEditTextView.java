@@ -122,14 +122,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private static final String SEPARATOR = String.valueOf(COMMIT_CHAR_COMMA)
             + String.valueOf(COMMIT_CHAR_SPACE);
 
-    // This pattern comes from android.util.Patterns. It has been tweaked to handle a "1" before
-    // parens, so numbers such as "1 (425) 222-2342" match.
-    private static final Pattern PHONE_PATTERN
-            = Pattern.compile(                                  // sdd = space, dot, or dash
-            "(\\+[0-9]+[\\- \\.]*)?"                    // +<digits><sdd>*
-                    + "(1?[ ]*\\([0-9]+\\)[\\- \\.]*)?"         // 1(<digits>)<sdd>*
-                    + "([0-9][0-9\\- \\.][0-9\\- \\.]+[0-9])"); // <digit><digit|sdd>+<digit>
-
     private static final int DISMISS = "dismiss".hashCode();
     private static final long DISMISS_DELAY = 300;
 
@@ -1286,24 +1278,12 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
     }
 
-    private static boolean isPhoneNumber(String number) {
-        // TODO: replace this function with libphonenumber's isPossibleNumber (see
-        // PhoneNumberUtil). One complication is that it requires the sender's region which
-        // comes from the CurrentCountryIso. For now, let's just do this simple match.
-        if (TextUtils.isEmpty(number)) {
-            return false;
-        }
-
-        Matcher match = PHONE_PATTERN.matcher(number);
-        return match.matches();
-    }
-
     // VisibleForTesting
     RecipientEntry createTokenizedEntry(final String token) {
         if (TextUtils.isEmpty(token)) {
             return null;
         }
-        if (isPhoneQuery() && isPhoneNumber(token)) {
+        if (isPhoneQuery() && PhoneUtil.isPhoneNumber(token)) {
             return RecipientEntry.constructFakePhoneEntry(token, true);
         }
         Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(token);
@@ -1891,7 +1871,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             display = null;
         }
         String trimmedDisplayText;
-        if (isPhoneQuery() && isPhoneNumber(address)) {
+        if (isPhoneQuery() && PhoneUtil.isPhoneNumber(address)) {
             trimmedDisplayText = address.trim();
         } else {
             if (address != null) {
