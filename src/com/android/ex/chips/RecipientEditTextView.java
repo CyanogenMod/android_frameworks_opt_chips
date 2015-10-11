@@ -150,7 +150,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private final int mTextHeight;
     private boolean mDisableDelete;
     private int mMaxLines;
-    private int mActionBarHeight;
     private int mMaxChipsParsed;
 
     /**
@@ -1098,11 +1097,6 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
         mMaxLines = r.getInteger(R.integer.chips_max_lines);
         mLineSpacingExtra = r.getDimensionPixelOffset(R.dimen.line_spacing_extra);
-        TypedValue tv = new TypedValue();
-        if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
-            mActionBarHeight = TypedValue.complexToDimensionPixelSize(tv.data, getResources()
-                    .getDisplayMetrics());
-        }
         mMaxChipsParsed = a.getInt(R.styleable.RecipientEditTextView_maxChips, MAX_CHIPS_PARSED);
 
         mUnselectedChipTextColor = a.getColor(
