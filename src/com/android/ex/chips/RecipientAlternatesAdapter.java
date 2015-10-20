@@ -27,7 +27,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
-import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
@@ -45,7 +44,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -108,16 +106,8 @@ public class RecipientAlternatesAdapter extends CursorAdapter {
         StringBuilder bindString = new StringBuilder();
         // Create the "?" string and set up arguments.
         for (int i = 0; i < addressesSize; i++) {
-            if (addressType == QUERY_TYPE_EMAIL) {
-                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(inAddresses.get(i).toLowerCase());
-                addresses.add(tokens.length > 0 ? tokens[0].getAddress() : inAddresses.get(i));
-            } else {
-                String number = PhoneNumberUtils.formatNumberToE164(inAddresses.get(i),
-                        Locale.getDefault().getCountry());
-                if (number != null) {
-                    addresses.add(number);
-                }
-            }
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(inAddresses.get(i).toLowerCase());
+            addresses.add(tokens.length > 0 ? tokens[0].getAddress() : inAddresses.get(i));
             bindString.append("?");
             if (i < addressesSize - 1) {
                 bindString.append(",");
