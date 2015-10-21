@@ -2260,6 +2260,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             if (showAddress && mNoChips) {
                 return;
             }
+
+            if (isTouchExplorationEnabled()) {
+                // The chips cannot be touch-explored. However, doing a double-tap results in
+                // the popup being shown for the last chip, which is of no value.
+                return;
+            }
+
             mSelectedChip = currentChip;
             setSelection(getText().getSpanEnd(mSelectedChip));
             setCursorVisible(false);
@@ -2270,6 +2277,16 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 showAlternates(currentChip, mAlternatesPopup);
             }
         }
+    }
+
+    private boolean isTouchExplorationEnabled() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            return false;
+        }
+
+        final AccessibilityManager accessibilityManager = (AccessibilityManager)
+                getContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+        return accessibilityManager.isTouchExplorationEnabled();
     }
 
     private boolean shouldShowEditableText(DrawableRecipientChip currentChip) {
