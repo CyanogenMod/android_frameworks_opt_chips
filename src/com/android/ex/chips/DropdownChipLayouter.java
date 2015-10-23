@@ -14,7 +14,6 @@ import android.net.Uri;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
-import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
@@ -255,11 +254,6 @@ public class DropdownChipLayouter {
         // Default to show all the information
         String displayName = entry.getDisplayName();
         String destination = entry.getDestination();
-        if (!TextUtils.isEmpty(destination)) {
-            destination = destination.substring(2, destination.length());
-            destination = PhoneNumberUtils.formatNumberToE164(destination,
-                    Locale.getDefault().getCountry());
-        }
 
         boolean showImage = true;
         String destinationType = null;
