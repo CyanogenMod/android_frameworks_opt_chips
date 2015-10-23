@@ -1191,11 +1191,21 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             Editable editable = getText();
             // Tokenize!
             if (mPendingChipsCount <= mMaxChipsParsed) {
+                // This fixes bug where there are contacts with same names or duplicate phone
+                // numbers in the RecipientEditTextView, or incase some numbers are substrings of
+                // some other numbers then they are not tokenized and chips are not created for
+                // them.
+                // We save the tokenEnd of the previous token and start searching for the current
+                // recipient in the text after the previous token's end.
+                int previousTokenEnd = 0;
                 for (int i = 0; i < mPendingChips.size(); i++) {
                     String current = mPendingChips.get(i);
-                    int tokenStart = editable.toString().indexOf(current);
-                    // Always leave a space at the end between tokens.
+                    final String stringToSearch = editable.toString().substring(previousTokenEnd);
+
+                    int tokenStart = previousTokenEnd + stringToSearch.indexOf(current);
                     int tokenEnd = tokenStart + current.length() - 1;
+                    previousTokenEnd = tokenEnd;
+
                     if (tokenStart >= 0) {
                         // When we have a valid token, include it with the token
                         // to the left.
@@ -1210,6 +1220,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                                             (i < CHIP_LIMIT) +
                                             " or " + !mShouldShrink + "])");
                         }
+
                         createReplacementChip(tokenStart, tokenEnd, editable, i < CHIP_LIMIT
                                 || !mShouldShrink);
                     }
@@ -1317,6 +1328,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             } catch (NullPointerException e) {
                 Log.e(TAG, e.getMessage(), e);
             }
+
             editable.setSpan(chip, tokenStart, tokenEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             // Add this chip to the list of entries "to replace"
             if (chip != null) {
@@ -2075,8 +2087,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     /* package */DrawableRecipientChip[] getSortedRecipients() {
         DrawableRecipientChip[] recips = getSpannable()
                 .getSpans(0, getText().length(), DrawableRecipientChip.class);
+
         ArrayList<DrawableRecipientChip> recipientsList = new ArrayList<DrawableRecipientChip>(
                 Arrays.asList(recips));
+
         final Spannable spannable = getSpannable();
         Collections.sort(recipientsList, new Comparator<DrawableRecipientChip>() {
 
@@ -2093,6 +2107,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 }
             }
         });
+
         return recipientsList.toArray(new DrawableRecipientChip[recipientsList.size()]);
     }
 
@@ -2220,6 +2235,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         Spannable spannable = getSpannable();
         int numRecipients = recipients.length;
         int overage = numRecipients - CHIP_LIMIT;
+
         MoreImageSpan moreSpan = createMoreSpan(overage);
         mRemovedSpans = new ArrayList<DrawableRecipientChip>();
         int totalReplaceStart = 0;
