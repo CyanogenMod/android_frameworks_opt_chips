@@ -174,6 +174,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private Handler mHandler;
     private TextWatcher mTextWatcher;
     private DropdownChipLayouter mDropdownChipLayouter;
+    private MaxChipsHandler mMaxChipsHandler;
 
     private ListPopupWindow mAlternatesPopup;
     private ListPopupWindow mAddressPopup;
@@ -1229,6 +1230,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 sanitizeEnd();
             } else {
                 mNoChips = true;
+                if (mMaxChipsHandler != null) {
+                    mMaxChipsHandler.onMaxChipsReached();
+                }
             }
 
             if (mTemporaryRecipients != null && mTemporaryRecipients.size() > 0
@@ -1765,6 +1769,14 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (!isFocused()) {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                if (countTokens(getText()) >= mMaxChipsParsed) {
+                    if (mMaxChipsHandler != null) {
+                        mMaxChipsHandler.onTouchWithMaxChips();
+                        return true; // Need to return true only if handled
+                    }
+                }
+            }
             // Ignore any chip taps until this view is focused.
             return super.onTouchEvent(event);
         }
@@ -3333,4 +3345,21 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     protected boolean isChipping() {
         return !mNoChips;
     }
+
+    public interface MaxChipsHandler {
+        void onTouchWithMaxChips();
+        void onMaxChipsReached();
+    }
+
+    public void setMaxChipsHandler(MaxChipsHandler maxChipsHandler) {
+        mMaxChipsHandler = maxChipsHandler;
+    }
+
+    public boolean requestFocusIfAble() {
+        if (countTokens(getText()) < mMaxChipsParsed) {
+            return super.requestFocus();
+        }
+        return false;
+    }
+
 }
