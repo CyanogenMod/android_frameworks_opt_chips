@@ -1460,17 +1460,17 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     }
 
     private boolean commitChip(int start, int end, Editable editable) {
-        ListAdapter adapter = getAdapter();
-        if (adapter != null && adapter.getCount() > 0 && enoughToFilter()
-                && end == getSelectionEnd() && !isPhoneQuery()) {
+        int position = positionOfFirstEntryWithTypePerson();
+        if (position != -1 && enoughToFilter()
+            && end == getSelectionEnd() && !isPhoneQuery()) {
             // let's choose the selected or first entry if only the input text is NOT an email
             // address so we won't try to replace the user's potentially correct but
             // new/unencountered email input
             if (!isValidEmailAddress(editable.toString().substring(start, end).trim())) {
                 final int selectedPosition = getListSelection();
-                if (selectedPosition == -1) {
-                    // Nothing is selected; use the first item
-                    submitItemAtPosition(0);
+                if (selectedPosition == -1 || !isEntryAtPositionTypePerson(selectedPosition)) {
+                    // Nothing is selected or selected item is not type person; use the first item
+                    submitItemAtPosition(position);
                 } else {
                     submitItemAtPosition(selectedPosition);
                 }
@@ -1508,6 +1508,21 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             }
         }
         return false;
+    }
+
+    private int positionOfFirstEntryWithTypePerson() {
+        ListAdapter adapter = getAdapter();
+        int itemCount = adapter != null ? adapter.getCount() : 0;
+        for (int i = 0; i < itemCount; i++) {
+            if (isEntryAtPositionTypePerson(i)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private boolean isEntryAtPositionTypePerson(int position) {
+        return getAdapter().getItem(position).getEntryType() == RecipientEntry.ENTRY_TYPE_PERSON;
     }
 
     // Visible for testing.
