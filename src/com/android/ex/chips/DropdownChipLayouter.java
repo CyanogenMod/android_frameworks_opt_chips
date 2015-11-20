@@ -27,6 +27,7 @@ import com.android.ex.chips.ResultAnimationDrawable.STATE;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * A class that inflates and binds the views in the dropdown list from
@@ -221,6 +222,16 @@ public class DropdownChipLayouter {
         return bindView(convertView, parent, entry, position, type, constraint, null);
     }
 
+    public static boolean isRTL() {
+        return isRTL(Locale.getDefault());
+    }
+
+    public static boolean isRTL(Locale locale) {
+        final int directionality = Character.getDirectionality(locale.getDisplayName().charAt(0));
+        return directionality == Character.DIRECTIONALITY_RIGHT_TO_LEFT ||
+               directionality == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC;
+    }
+
     /**
      * See {@link #bindView(View, ViewGroup, RecipientEntry, int, AdapterType, String)}
      * @param deleteDrawable
@@ -269,6 +280,16 @@ public class DropdownChipLayouter {
             case SINGLE_RECIPIENT:
                 destination = Rfc822Tokenizer.tokenize(entry.getDestination())[0].getAddress();
                 destinationType = null;
+        }
+
+        if (!TextUtils.isEmpty(destination)) {
+            if (isRTL()) {
+                if (destination.contains("+")) {
+                    // Move the plus sign to the rear so it displays at the beginning
+                    destination = destination.replace("+", "");
+                    destination = destination + "+";
+                }
+            }
         }
 
         // Bind the information to the view
