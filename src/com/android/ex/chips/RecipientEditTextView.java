@@ -174,7 +174,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private Validator mValidator;
     private Handler mHandler;
     private TextWatcher mTextWatcher;
-    private DropdownChipLayouter mDropdownChipLayouter;
+    protected DropdownChipLayouter mDropdownChipLayouter;
 
     private View mDropdownAnchor = this;
     private ListPopupWindow mAlternatesPopup;
@@ -1742,7 +1742,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }.execute((Void[]) null);
     }
 
-    private ListAdapter createAlternatesAdapter(DrawableRecipientChip chip) {
+    protected ListAdapter createAlternatesAdapter(DrawableRecipientChip chip) {
         return new RecipientAlternatesAdapter(getContext(), chip.getContactId(),
                 chip.getDirectoryId(), chip.getLookupKey(), chip.getDataId(),
                 getAdapter().getQueryType(), this, mDropdownChipLayouter,
