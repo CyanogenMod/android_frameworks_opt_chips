@@ -115,6 +115,15 @@ public class RecipientEntry {
         mPermissions = permissions;
     }
 
+    protected RecipientEntry(int entryType, String displayName, String destination,
+            int destinationType, String destinationLabel, long contactId, Long directoryId,
+            long dataId, Uri photoThumbnailUri, boolean isFirstLevel, boolean isValid,
+            String lookupKey) {
+        this(entryType, displayName, destination, destinationType, destinationLabel,
+                contactId, directoryId, dataId, photoThumbnailUri, isFirstLevel, isValid,
+                lookupKey, null);
+    }
+
     public boolean isValid() {
         return mIsValid;
     }
