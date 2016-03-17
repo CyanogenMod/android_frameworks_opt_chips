@@ -548,6 +548,15 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                     }
                 }
 
+                // Is the dropdown closing?
+                if ((entries == null || entries.size() == 0)
+                        // Here the current suggestion count is still the old one since we update
+                        // the count at the bottom of this function.
+                        && mCurrentSuggestionCount != 0) {
+                    announceForAccessibilityCompat(getResources().getString(
+                            R.string.accessbility_suggestion_dropdown_closed));
+                }
+
                 if ((entries != null)
                         && (entries.size() == 1)
                         && (entries.get(0).getEntryType() ==
