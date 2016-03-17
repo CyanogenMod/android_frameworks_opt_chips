@@ -19,12 +19,16 @@ import android.os.Bundle;
 import android.text.util.Rfc822Tokenizer;
 import android.widget.MultiAutoCompleteTextView;
 import android.app.Activity;
+import android.util.Log;
 
 import com.android.ex.chips.BaseRecipientAdapter;
 import com.android.ex.chips.RecipientEditTextView;
 import com.android.ex.chips.RecipientEditTextView.PermissionsRequestItemClickedListener;
+import com.android.ex.chips.RecipientEditTextView.RecipientChipDeletedListener;
+import com.android.ex.chips.RecipientEntry;
 
-public class MainActivity extends Activity implements PermissionsRequestItemClickedListener {
+public class MainActivity extends Activity
+    implements PermissionsRequestItemClickedListener, RecipientChipDeletedListener {
 
     private RecipientEditTextView mEmailRetv;
     private RecipientEditTextView mPhoneRetv;
@@ -49,6 +53,7 @@ public class MainActivity extends Activity implements PermissionsRequestItemClic
         phoneAdapter.setShowRequestPermissionsItem(true);
         mPhoneRetv.setAdapter(phoneAdapter);
         mPhoneRetv.setPermissionsRequestItemClickedListener(this);
+        mEmailRetv.setRecipientChipDeletedListener(this);
     }
 
     @Override
@@ -61,5 +66,10 @@ public class MainActivity extends Activity implements PermissionsRequestItemClic
     public void onPermissionRequestDismissed() {
         mEmailRetv.getAdapter().setShowRequestPermissionsItem(false);
         mPhoneRetv.getAdapter().setShowRequestPermissionsItem(false);
+    }
+
+    @Override
+    public void onRecipientChipDeleted(RecipientEntry entry) {
+        Log.i("ChipsSample", entry.getDisplayName() + " recipient chip removed");
     }
 }

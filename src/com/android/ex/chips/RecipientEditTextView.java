@@ -239,6 +239,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     private RecipientEntryItemClickedListener mRecipientEntryItemClickedListener;
 
+    private RecipientChipDeletedListener mRecipientChipDeletedListener;
+
     public interface RecipientEntryItemClickedListener {
         /**
          * Callback that occurs whenever an auto-complete suggestion is clicked.
@@ -270,6 +272,17 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
          * the app.
          */
         void onPermissionRequestDismissed();
+    }
+
+    /**
+     * Listener for handling deletion of chips in the recipient edit text.
+     */
+    public interface RecipientChipDeletedListener {
+        /**
+         * Callback that occurs when a chip is deleted.
+         * @param entry RecipientEntry that contains information about the chip.
+         */
+        void onRecipientChipDeleted(RecipientEntry entry);
     }
 
     public RecipientEditTextView(Context context, AttributeSet attrs) {
@@ -350,6 +363,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     public void setPermissionsRequestItemClickedListener(
             PermissionsRequestItemClickedListener listener) {
         mPermissionsRequestItemClickedListener = listener;
+    }
+
+    public void setRecipientChipDeletedListener(RecipientChipDeletedListener listener) {
+        mRecipientChipDeletedListener = listener;
     }
 
     @Override
@@ -546,7 +563,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 if ((entries == null || entries.size() == 0)
                         // Here the current suggestion count is still the old one since we update
                         // the count at the bottom of this function.
-                        && mCurrentSuggestionCount != 0) {
+                        && mCurrentSuggestionCount != 0
+                        // If there is no text, there's no need to know if no suggestions are
+                        // available.
+                        && getText().length() > 0) {
                     announceForAccessibilityCompat(getResources().getString(
                             R.string.accessbility_suggestion_dropdown_closed));
                 }
@@ -2571,6 +2591,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                     int deleteEnd = editable.getSpanEnd(toDelete) + 1;
                     if (deleteEnd > editable.length()) {
                         deleteEnd = editable.length();
+                    }
+                    if (mRecipientChipDeletedListener != null) {
+                        mRecipientChipDeletedListener.onRecipientChipDeleted(toDelete.getEntry());
                     }
                     editable.removeSpan(toDelete);
                     editable.delete(deleteStart, deleteEnd);
