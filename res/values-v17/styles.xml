@@ -28,12 +28,6 @@
         <item name="android:layout_marginStart">@dimen/chip_wrapper_start_padding</item>
     </style>
 
-    <style name="ChipAutocompleteDividerStyle.Bottom.PermissionItem">
-        <item name="android:background">@drawable/chip_autocomplete_divider_background</item>
-        <item name="android:layout_height">3dp</item>
-        <item name="android:layout_marginStart">0dp</item>
-    </style>
-
     <style name="ChipStartIconStyle" parent="@style/ChipIconBaseStyle">
         <item name="android:layout_marginEnd">@dimen/chip_icon_margin_end</item>
     </style>
