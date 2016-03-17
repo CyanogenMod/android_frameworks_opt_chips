@@ -185,9 +185,11 @@ public class DropdownChipLayouter {
         if (entryType == RecipientEntry.ENTRY_TYPE_PERSON) {
             setViewVisibility(viewHolder.personViewGroup, View.VISIBLE);
             setViewVisibility(viewHolder.permissionViewGroup, View.GONE);
+            setViewVisibility(viewHolder.permissionBottomDivider, View.GONE);
         } else if (entryType == RecipientEntry.ENTRY_TYPE_PERMISSION_REQUEST) {
             setViewVisibility(viewHolder.personViewGroup, View.GONE);
             setViewVisibility(viewHolder.permissionViewGroup, View.VISIBLE);
+            setViewVisibility(viewHolder.permissionBottomDivider, View.VISIBLE);
         }
 
         return itemView;
@@ -523,6 +525,7 @@ public class DropdownChipLayouter {
         public final ImageView deleteView;
         public final View topDivider;
         public final View bottomDivider;
+        public final View permissionBottomDivider;
 
         public final ViewGroup permissionViewGroup;
         public final ImageView permissionRequestDismissView;
@@ -535,7 +538,10 @@ public class DropdownChipLayouter {
             imageView = (ImageView) view.findViewById(getPhotoResId());
             deleteView = (ImageView) view.findViewById(getDeleteResId());
             topDivider = view.findViewById(R.id.chip_autocomplete_top_divider);
+
             bottomDivider = view.findViewById(R.id.chip_autocomplete_bottom_divider);
+            permissionBottomDivider = view.findViewById(R.id.chip_permission_bottom_divider);
+
             indicatorView = (TextView) view.findViewById(R.id.chip_indicator_text);
 
             permissionViewGroup = (ViewGroup) view.findViewById(getPermissionGroupResId());
