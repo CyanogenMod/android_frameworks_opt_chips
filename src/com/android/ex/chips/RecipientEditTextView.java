@@ -386,8 +386,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             if (mSelectedChip != null) {
                 clearSelectedChip();
                 return true;
-            } else if (focusNext()) {
-                return true;
+            } else if (hasFocus()) {
+                if (focusNext()) {
+                    return true;
+                }
             }
         }
         return false;
