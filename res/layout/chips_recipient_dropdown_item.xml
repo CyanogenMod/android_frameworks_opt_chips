@@ -31,7 +31,6 @@
 
         <TextView
             android:id="@+id/chip_indicator_text"
-            android:layout_marginTop="6dp"
             style="@style/ChipIndicatorTextStyle" />
 
     </LinearLayout>

@@ -89,6 +89,7 @@ import android.widget.PopupWindow;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.android.ex.chips.DropdownChipLayouter.PermissionRequestDismissedListener;
 import com.android.ex.chips.RecipientAlternatesAdapter.RecipientMatchCallback;
 import com.android.ex.chips.recipientchip.DrawableRecipientChip;
 import com.android.ex.chips.recipientchip.InvisibleRecipientChip;
@@ -112,7 +113,7 @@ import java.util.regex.Pattern;
 public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         OnItemClickListener, Callback, RecipientAlternatesAdapter.OnCheckedItemChangedListener,
         GestureDetector.OnGestureListener, TextView.OnEditorActionListener,
-        DropdownChipLayouter.ChipDeleteListener {
+        DropdownChipLayouter.ChipDeleteListener, PermissionRequestDismissedListener {
     private static final String TAG = "RecipientEditTextView";
 
     private static final char COMMIT_CHAR_COMMA = ',';
@@ -256,6 +257,29 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         void onRecipientEntryItemClicked(int charactersTyped, int position);
     }
 
+    private PermissionsRequestItemClickedListener mPermissionsRequestItemClickedListener;
+
+    /**
+     * Listener for handling clicks on the {@link RecipientEntry} that have
+     * {@link RecipientEntry#ENTRY_TYPE_PERMISSION_REQUEST} type.
+     */
+    public interface PermissionsRequestItemClickedListener {
+
+        /**
+         * Callback that occurs when user clicks the item that asks user to grant permissions to
+         * the app.
+         *
+         * @param view View that asks for permission.
+         */
+        void onPermissionsRequestItemClicked(RecipientEditTextView view, String[] permissions);
+
+        /**
+         * Callback that occurs when user dismisses the item that asks user to grant permissions to
+         * the app.
+         */
+        void onPermissionRequestDismissed();
+    }
+
     public RecipientEditTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setChipDimensions(context, attrs);
@@ -324,10 +348,16 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     public void setDropdownChipLayouter(DropdownChipLayouter dropdownChipLayouter) {
         mDropdownChipLayouter = dropdownChipLayouter;
         mDropdownChipLayouter.setDeleteListener(this);
+        mDropdownChipLayouter.setPermissionRequestDismissedListener(this);
     }
 
     public void setRecipientEntryItemClickedListener(RecipientEntryItemClickedListener listener) {
         mRecipientEntryItemClickedListener = listener;
+    }
+
+    public void setPermissionsRequestItemClickedListener(
+            PermissionsRequestItemClickedListener listener) {
+        mPermissionsRequestItemClickedListener = listener;
     }
 
     @Override
@@ -678,8 +708,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
         Drawable indicatorIcon = null;
         int indicatorPadding = 0;
-        if (contact.getIndicatorIconId() != -1) {
-            indicatorIcon = getResources().getDrawable(contact.getIndicatorIconId());
+        if (contact.getIndicatorIconId() != 0) {
+            indicatorIcon = getContext().getDrawable(contact.getIndicatorIconId());
             indicatorIcon.setBounds(0, 0,
                     indicatorIcon.getIntrinsicWidth(), indicatorIcon.getIntrinsicHeight());
             indicatorPadding = indicatorIcon.getBounds().width() + mChipTextEndPadding;
@@ -1606,7 +1636,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * and makes sure that the range is not already a Chip.
      */
     @Override
-    protected void performFiltering(@NonNull CharSequence text, int keyCode) {
+    public void performFiltering(@NonNull CharSequence text, int keyCode) {
         boolean isCompletedToken = isCompletedToken(text);
         if (enoughToFilter() && !isCompletedToken) {
             int end = getSelectionEnd();
@@ -1919,6 +1949,15 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (position < 0) {
+            return;
+        }
+
+        final RecipientEntry entry = getAdapter().getItem(position);
+        if (entry.getEntryType() == RecipientEntry.ENTRY_TYPE_PERMISSION_REQUEST) {
+            if (mPermissionsRequestItemClickedListener != null) {
+                mPermissionsRequestItemClickedListener
+                        .onPermissionsRequestItemClicked(this, entry.getPermissions());
+            }
             return;
         }
 
@@ -2308,6 +2347,14 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         dismissPopups();
     }
 
+    @Override
+    public void onPermissionRequestDismissed() {
+        if (mPermissionsRequestItemClickedListener != null) {
+            mPermissionsRequestItemClickedListener.onPermissionRequestDismissed();
+        }
+        dismissDropDown();
+    }
+
     private void dismissPopups() {
         if (mAlternatesPopup != null && mAlternatesPopup.isShowing()) {
             mAlternatesPopup.dismiss();
@@ -2518,7 +2565,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
     }
 
-   public boolean lastCharacterIsCommitCharacter(CharSequence s) {
+    public boolean lastCharacterIsCommitCharacter(CharSequence s) {
         char last;
         int end = getSelectionEnd() == 0 ? 0 : getSelectionEnd() - 1;
         int len = length() - 1;

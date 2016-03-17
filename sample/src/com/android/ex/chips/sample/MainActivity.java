@@ -22,24 +22,44 @@ import android.app.Activity;
 
 import com.android.ex.chips.BaseRecipientAdapter;
 import com.android.ex.chips.RecipientEditTextView;
+import com.android.ex.chips.RecipientEditTextView.PermissionsRequestItemClickedListener;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements PermissionsRequestItemClickedListener {
+
+    private RecipientEditTextView mEmailRetv;
+    private RecipientEditTextView mPhoneRetv;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final RecipientEditTextView emailRetv =
-                (RecipientEditTextView) findViewById(R.id.email_retv);
-        emailRetv.setTokenizer(new Rfc822Tokenizer());
-        emailRetv.setAdapter(new BaseRecipientAdapter(this));
+        mEmailRetv = (RecipientEditTextView) findViewById(R.id.email_retv);
+        mEmailRetv.setTokenizer(new Rfc822Tokenizer());
+        final BaseRecipientAdapter emailAdapter = new BaseRecipientAdapter(this);
+        emailAdapter.setShowRequestPermissionsItem(true);
+        mEmailRetv.setAdapter(emailAdapter);
+        mEmailRetv.setPermissionsRequestItemClickedListener(this);
 
-        final RecipientEditTextView phoneRetv =
-                (RecipientEditTextView) findViewById(R.id.phone_retv);
-        phoneRetv.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
-        phoneRetv.setAdapter(
-                new BaseRecipientAdapter(BaseRecipientAdapter.QUERY_TYPE_PHONE, this));
+
+        mPhoneRetv = (RecipientEditTextView) findViewById(R.id.phone_retv);
+        mPhoneRetv.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
+        final BaseRecipientAdapter phoneAdapter =
+                new BaseRecipientAdapter(BaseRecipientAdapter.QUERY_TYPE_PHONE, this);
+        phoneAdapter.setShowRequestPermissionsItem(true);
+        mPhoneRetv.setAdapter(phoneAdapter);
+        mPhoneRetv.setPermissionsRequestItemClickedListener(this);
     }
 
+    @Override
+    public void onPermissionsRequestItemClicked(
+            RecipientEditTextView view, String[] permissions) {
+        requestPermissions(permissions, 0 /* requestCode */);
+    }
+
+    @Override
+    public void onPermissionRequestDismissed() {
+        mEmailRetv.getAdapter().setShowRequestPermissionsItem(false);
+        mPhoneRetv.getAdapter().setShowRequestPermissionsItem(false);
+    }
 }
