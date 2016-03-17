@@ -165,7 +165,9 @@ public class DropdownChipLayouter {
                 }
                 break;
             case SINGLE_RECIPIENT:
-                destination = Rfc822Tokenizer.tokenize(entry.getDestination())[0].getAddress();
+                if (!PhoneUtil.isPhoneNumber(entry.getDestination())) {
+                    destination = Rfc822Tokenizer.tokenize(entry.getDestination())[0].getAddress();
+                }
                 destinationType = null;
         }
 
