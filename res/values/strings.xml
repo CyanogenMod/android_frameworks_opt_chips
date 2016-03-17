@@ -30,4 +30,6 @@
     <string name="chips_action_copy">Copy</string>
     <!-- Text displayed as the secondary action for a dialog to cancel. [CHAR LIMIT=25] -->
     <string name="chips_action_cancel">Cancel</string>
+    <!-- Text displayed on the drop down item that is shown when app doesn't have Contact permission. This item will open dialog to request permission. [CHAR LIMIT=50] -->
+    <string name="chips_permission_text">Allow contacts suggestions</string>
 </resources>
