@@ -21,8 +21,16 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Process;
+import android.support.annotation.Nullable;
 
 public class ChipsUtil {
+
+    /**
+     * Listener that gets notified when we check whether we have permission.
+     */
+    public interface PermissionsCheckListener {
+        void onPermissionCheck(String permission, boolean granted);
+    }
 
     /**
      * Permissions required by Chips library.
@@ -64,10 +72,19 @@ public class ChipsUtil {
 
     /**
      * Returns true if all permissions in {@link #REQUIRED_PERMISSIONS} are granted.
+     *
+     * <p>If {@link PermissionsCheckListener} is specified it will be called for every
+     * {@link #checkPermission} call.
      */
-    public static boolean hasPermissions(Context context) {
+    public static boolean hasPermissions(Context context,
+            @Nullable PermissionsCheckListener permissionsCheckListener) {
         for (String permission : REQUIRED_PERMISSIONS) {
-            if (checkPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+            final boolean granted =
+                    checkPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
+            if (permissionsCheckListener != null) {
+                permissionsCheckListener.onPermissionCheck(permission, granted);
+            }
+            if (!granted) {
                 return false;
             }
         }

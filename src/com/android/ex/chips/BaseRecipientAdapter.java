@@ -30,6 +30,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Directory;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.text.util.Rfc822Token;
 import android.util.Log;
@@ -40,6 +41,7 @@ import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
 
+import com.android.ex.chips.ChipsUtil.PermissionsCheckListener;
 import com.android.ex.chips.DropdownChipLayouter.AdapterType;
 
 import java.util.ArrayList;
@@ -238,7 +240,7 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
                 return results;
             }
 
-            if (!ChipsUtil.hasPermissions(mContext)) {
+            if (!ChipsUtil.hasPermissions(mContext, mPermissionsCheckListener)) {
                 if (DEBUG) {
                     Log.d(TAG, "No Contacts permission. mShowRequestPermissionsItem: "
                             + mShowRequestPermissionsItem);
@@ -351,7 +353,7 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
      * {@code null} when we don't need or can't search other directories.
      */
     protected List<DirectorySearchParams> searchOtherDirectories(Set<String> existingDestinations) {
-        if (!ChipsUtil.hasPermissions(mContext)) {
+        if (!ChipsUtil.hasPermissions(mContext, mPermissionsCheckListener)) {
             // If we don't have permissions we can't search other directories.
             if (DEBUG) {
                 Log.d(TAG, "Not searching other directories because we don't have required "
@@ -541,6 +543,8 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
 
     protected boolean mShowRequestPermissionsItem;
 
+    private PermissionsCheckListener mPermissionsCheckListener;
+
     /**
      * Handler specific for maintaining "Waiting for more contacts" message, which will be shown
      * when:
@@ -622,6 +626,15 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
         return mDropdownChipLayouter;
     }
 
+    public void setPermissionsCheckListener(PermissionsCheckListener permissionsCheckListener) {
+        mPermissionsCheckListener = permissionsCheckListener;
+    }
+
+    @Nullable
+    public PermissionsCheckListener getPermissionsCheckListener() {
+        return mPermissionsCheckListener;
+    }
+
     /**
      * Enables overriding the default photo manager that is used.
      */
@@ -653,7 +666,7 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
     public void getMatchingRecipients(ArrayList<String> inAddresses,
             RecipientAlternatesAdapter.RecipientMatchCallback callback) {
         RecipientAlternatesAdapter.getMatchingRecipients(
-                getContext(), this, inAddresses, getAccount(), callback);
+                getContext(), this, inAddresses, getAccount(), callback, mPermissionsCheckListener);
     }
 
     /**
@@ -916,7 +929,7 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
     }
 
     private Cursor doQuery(CharSequence constraint, int limit, Long directoryId) {
-        if (!ChipsUtil.hasPermissions(mContext)) {
+        if (!ChipsUtil.hasPermissions(mContext, mPermissionsCheckListener)) {
             if (DEBUG) {
                 Log.d(TAG, "Not doing query because we don't have required permissions.");
             }
