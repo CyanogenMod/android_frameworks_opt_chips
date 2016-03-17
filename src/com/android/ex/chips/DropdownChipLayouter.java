@@ -115,7 +115,7 @@ public class DropdownChipLayouter {
      *     default state can map to a drawable of your choice (or null for no drawable).
      */
     public View bindView(View convertView, ViewGroup parent, RecipientEntry entry, int position,
-            AdapterType adapterType, String constraint, StateListDrawable deleteDrawable) {
+            AdapterType type, String constraint, StateListDrawable deleteDrawable) {
         // Default to show all the information
         CharSequence[] styledResults =
                 getStyledResults(constraint, entry.getDisplayName(), entry.getDestination());
@@ -124,14 +124,12 @@ public class DropdownChipLayouter {
         boolean showImage = true;
         CharSequence destinationType = getDestinationType(entry);
 
-        final int entryType = entry.getEntryType();
-        final View itemView =
-                reuseOrInflateView(convertView, parent, adapterType, entryType);
+        final View itemView = reuseOrInflateView(convertView, parent, type);
 
         final ViewHolder viewHolder = new ViewHolder(itemView);
 
         // Hide some information depending on the adapter type.
-        switch (adapterType) {
+        switch (type) {
             case BASE_RECIPIENT:
                 if (TextUtils.isEmpty(displayName) || TextUtils.equals(displayName, destination)) {
                     displayName = destination;
@@ -155,8 +153,7 @@ public class DropdownChipLayouter {
                             (MarginLayoutParams) viewHolder.topDivider.getLayoutParams(),
                             mAutocompleteDividerMarginStart);
                 }
-                if ((viewHolder.bottomDivider != null)
-                        && (entryType == RecipientEntry.ENTRY_TYPE_PERSON)) {
+                if (viewHolder.bottomDivider != null) {
                     MarginLayoutParamsCompat.setMarginStart(
                             (MarginLayoutParams) viewHolder.bottomDivider.getLayoutParams(),
                             mAutocompleteDividerMarginStart);
@@ -177,11 +174,21 @@ public class DropdownChipLayouter {
         bindTextToView(displayName, viewHolder.displayNameView);
         bindTextToView(destination, viewHolder.destinationView);
         bindTextToView(destinationType, viewHolder.destinationTypeView);
-        bindIconToView(showImage, entry, viewHolder.imageView, adapterType);
+        bindIconToView(showImage, entry, viewHolder.imageView, type);
         bindDrawableToDeleteView(deleteDrawable, entry.getDisplayName(), viewHolder.deleteView);
         bindIndicatorToView(
                 entry.getIndicatorIconId(), entry.getIndicatorText(), viewHolder.indicatorView);
         bindPermissionRequestDismissView(viewHolder.permissionRequestDismissView);
+
+        // Hide some view groups depending on the entry type
+        final int entryType = entry.getEntryType();
+        if (entryType == RecipientEntry.ENTRY_TYPE_PERSON) {
+            setViewVisibility(viewHolder.personViewGroup, View.VISIBLE);
+            setViewVisibility(viewHolder.permissionViewGroup, View.GONE);
+        } else if (entryType == RecipientEntry.ENTRY_TYPE_PERMISSION_REQUEST) {
+            setViewVisibility(viewHolder.personViewGroup, View.GONE);
+            setViewVisibility(viewHolder.permissionViewGroup, View.VISIBLE);
+        }
 
         return itemView;
     }
@@ -196,15 +203,14 @@ public class DropdownChipLayouter {
     /**
      * Returns the same view, or inflates a new one if the given view was null.
      */
-    protected View reuseOrInflateView(
-            View convertView, ViewGroup parent, AdapterType adapterType, int entryType) {
-        @LayoutRes int itemLayout = getItemLayoutResId(adapterType, entryType);
-        switch (adapterType) {
+    protected View reuseOrInflateView(View convertView, ViewGroup parent, AdapterType type) {
+        int itemLayout = getItemLayoutResId(type);
+        switch (type) {
             case BASE_RECIPIENT:
             case RECIPIENT_ALTERNATES:
                 break;
             case SINGLE_RECIPIENT:
-                itemLayout = getAlternateItemLayoutResId(adapterType);
+                itemLayout = getAlternateItemLayoutResId(type);
                 break;
         }
         return convertView != null ? convertView : mInflater.inflate(itemLayout, parent, false);
@@ -346,12 +352,8 @@ public class DropdownChipLayouter {
      * (for photo). Ids for those should be available via {@link #getDisplayNameResId()},
      * {@link #getDestinationResId()}, and {@link #getPhotoResId()}.
      */
-    protected @LayoutRes int getItemLayoutResId(
-            AdapterType adapterType, @Nullable Integer entryType) {
-        if (entryType == RecipientEntry.ENTRY_TYPE_PERMISSION_REQUEST) {
-            return R.layout.chips_autocomplete_permission_dropdown_item;
-        }
-        switch (adapterType) {
+    protected @LayoutRes int getItemLayoutResId(AdapterType type) {
+        switch (type) {
             case BASE_RECIPIENT:
                 return R.layout.chips_autocomplete_recipient_dropdown_item;
             case RECIPIENT_ALTERNATES:
@@ -359,10 +361,6 @@ public class DropdownChipLayouter {
             default:
                 return R.layout.chips_recipient_dropdown_item;
         }
-    }
-
-    protected @LayoutRes int getItemLayoutResId(AdapterType adapterType) {
-        return getItemLayoutResId(adapterType, null);
     }
 
     /**
@@ -516,6 +514,7 @@ public class DropdownChipLayouter {
      * corresponding views.
      */
     protected class ViewHolder {
+        public final ViewGroup personViewGroup;
         public final TextView displayNameView;
         public final TextView destinationView;
         public final TextView destinationTypeView;
@@ -525,9 +524,11 @@ public class DropdownChipLayouter {
         public final View topDivider;
         public final View bottomDivider;
 
+        public final ViewGroup permissionViewGroup;
         public final ImageView permissionRequestDismissView;
 
         public ViewHolder(View view) {
+            personViewGroup = (ViewGroup) view.findViewById(getPersonGroupResId());
             displayNameView = (TextView) view.findViewById(getDisplayNameResId());
             destinationView = (TextView) view.findViewById(getDestinationResId());
             destinationTypeView = (TextView) view.findViewById(getDestinationTypeResId());
@@ -537,6 +538,7 @@ public class DropdownChipLayouter {
             bottomDivider = view.findViewById(R.id.chip_autocomplete_bottom_divider);
             indicatorView = (TextView) view.findViewById(R.id.chip_indicator_text);
 
+            permissionViewGroup = (ViewGroup) view.findViewById(getPermissionGroupResId());
             permissionRequestDismissView =
                     (ImageView) view.findViewById(getPermissionRequestDismissResId());
         }
