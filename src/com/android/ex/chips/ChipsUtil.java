@@ -51,9 +51,8 @@ public class ChipsUtil {
      * <p>This is interesting for us because new permission model is introduced in M and we need to
      * check if we have {@link #REQUIRED_PERMISSIONS}.
      */
-    public static boolean isRunningMncOrLater() {
-        // TODO: Update to use M once it's finalized in VERSION_CODES
-        return Build.VERSION.SDK_INT > 22;
+    public static boolean isRunningMOrLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     }
 
     /**
@@ -61,7 +60,7 @@ public class ChipsUtil {
      * {@link PackageManager#PERMISSION_DENIED} if not.
      */
     public static int checkPermission(Context context, String permission) {
-        if (isRunningMncOrLater()) {
+        if (isRunningMOrLater()) {
             // TODO: Use "context.checkSelfPermission(permission)" once it's safe to move to M sdk
             return context.checkPermission(permission, Process.myPid(), Process.myUid());
         } else {
