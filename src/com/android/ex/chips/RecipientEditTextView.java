@@ -546,11 +546,19 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                     }
                 }
 
-                // Set the dropdown height to be the remaining height from the anchor to the bottom.
-                mDropdownAnchor.getLocationInWindow(mCoords);
-                getWindowVisibleDisplayFrame(mRect);
-                setDropDownHeight(mRect.bottom - mCoords[1] - mDropdownAnchor.getHeight() -
-                    getDropDownVerticalOffset());
+                if ((entries != null)
+                        && (entries.size() == 1)
+                        && (entries.get(0).getEntryType() ==
+                                RecipientEntry.ENTRY_TYPE_PERMISSION_REQUEST)) {
+                    // Do nothing; showing a single permissions entry. Resizing not required.
+                } else {
+                    // Set the dropdown height to be the remaining height from the anchor to the
+                    // bottom.
+                    mDropdownAnchor.getLocationInWindow(mCoords);
+                    getWindowVisibleDisplayFrame(mRect);
+                    setDropDownHeight(mRect.bottom - mCoords[1] - mDropdownAnchor.getHeight() -
+                            getDropDownVerticalOffset());
+                }
 
                 mCurrentSuggestionCount = entries == null ? 0 : entries.size();
             }
