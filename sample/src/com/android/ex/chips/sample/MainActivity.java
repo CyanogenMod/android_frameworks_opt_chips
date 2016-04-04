@@ -24,11 +24,13 @@ import android.util.Log;
 import com.android.ex.chips.BaseRecipientAdapter;
 import com.android.ex.chips.RecipientEditTextView;
 import com.android.ex.chips.RecipientEditTextView.PermissionsRequestItemClickedListener;
+import com.android.ex.chips.RecipientEditTextView.RecipientChipAddedListener;
 import com.android.ex.chips.RecipientEditTextView.RecipientChipDeletedListener;
 import com.android.ex.chips.RecipientEntry;
 
 public class MainActivity extends Activity
-    implements PermissionsRequestItemClickedListener, RecipientChipDeletedListener {
+    implements PermissionsRequestItemClickedListener, RecipientChipDeletedListener,
+        RecipientChipAddedListener {
 
     private RecipientEditTextView mEmailRetv;
     private RecipientEditTextView mPhoneRetv;
@@ -53,6 +55,7 @@ public class MainActivity extends Activity
         phoneAdapter.setShowRequestPermissionsItem(true);
         mPhoneRetv.setAdapter(phoneAdapter);
         mPhoneRetv.setPermissionsRequestItemClickedListener(this);
+        mEmailRetv.setRecipientChipAddedListener(this);
         mEmailRetv.setRecipientChipDeletedListener(this);
     }
 
@@ -66,6 +69,11 @@ public class MainActivity extends Activity
     public void onPermissionRequestDismissed() {
         mEmailRetv.getAdapter().setShowRequestPermissionsItem(false);
         mPhoneRetv.getAdapter().setShowRequestPermissionsItem(false);
+    }
+
+    @Override
+    public void onRecipientChipAdded(RecipientEntry entry) {
+        Log.i("ChipsSample", entry.getDisplayName() + " recipient chip added");
     }
 
     @Override

@@ -239,6 +239,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     private RecipientEntryItemClickedListener mRecipientEntryItemClickedListener;
 
+    private RecipientChipAddedListener mRecipientChipAddedListener;
     private RecipientChipDeletedListener mRecipientChipDeletedListener;
 
     public interface RecipientEntryItemClickedListener {
@@ -283,6 +284,18 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
          * @param entry RecipientEntry that contains information about the chip.
          */
         void onRecipientChipDeleted(RecipientEntry entry);
+    }
+
+    /**
+     * Listener for handling addition of chips in the recipient edit text.
+     */
+    public interface RecipientChipAddedListener {
+        /**
+         * Callback that occurs when a chip is added.
+         *
+         * @param entry RecipientEntry that contains information about the chip.
+         */
+        void onRecipientChipAdded(RecipientEntry entry);
     }
 
     public RecipientEditTextView(Context context, AttributeSet attrs) {
@@ -363,6 +376,10 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     public void setPermissionsRequestItemClickedListener(
             PermissionsRequestItemClickedListener listener) {
         mPermissionsRequestItemClickedListener = listener;
+    }
+
+    public void setRecipientChipAddedListener(RecipientChipAddedListener listener) {
+        mRecipientChipAddedListener = listener;
     }
 
     public void setRecipientChipDeletedListener(RecipientChipDeletedListener listener) {
@@ -1972,7 +1989,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * A callback for subclasses to use to know when a chip was created with the
      * given RecipientEntry.
      */
-    protected void onChipCreated(RecipientEntry entry) {}
+    protected void onChipCreated(RecipientEntry entry) {
+        if (mRecipientChipAddedListener != null) {
+            mRecipientChipAddedListener.onRecipientChipAdded(entry);
+        }
+    }
 
     /**
      * When an item in the suggestions list has been clicked, create a chip from the
