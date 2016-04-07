@@ -16,7 +16,7 @@ dependencies {
 
 Dependency findDependency(String projectName, String moduleName) {
     if (findProject(projectName) != null) {
-        return project(projectName);
+        return dependencies.project(path: projectName)
     }
 
     return dependencies.create(moduleName)
