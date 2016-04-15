@@ -746,8 +746,9 @@ public class BaseRecipientAdapter extends BaseAdapter implements Filterable, Acc
             // If an account has been provided and we found a directory that
             // corresponds to that account, place that directory second, directly
             // underneath the local contacts.
-            if (account != null && account.name.equals(params.accountName) &&
-                    account.type.equals(params.accountType)) {
+            if (preferredDirectory == null && account != null
+                    && account.name.equals(params.accountName)
+                    && account.type.equals(params.accountType)) {
                 preferredDirectory = params;
             } else {
                 paramsList.add(params);
