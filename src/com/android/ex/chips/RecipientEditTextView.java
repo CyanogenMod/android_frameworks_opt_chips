@@ -2079,6 +2079,41 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return end - start;
     }
 
+    /**
+     * @hide
+     */
+    public void onGroupItemClick(int position, RecipientEntry entry) {
+        if (position < 0) {
+            return;
+        }
+
+        final int charactersTyped = submitGroupMemberAtPosition(entry);
+        if (charactersTyped > -1 && mRecipientEntryItemClickedListener != null) {
+            mRecipientEntryItemClickedListener
+                    .onRecipientEntryItemClicked(charactersTyped, position);
+        }
+    }
+
+    private int submitGroupMemberAtPosition(RecipientEntry entry) {
+        if (entry == null) {
+            return -1;
+        }
+        clearComposingText();
+
+        int end = getSelectionEnd();
+        int start = mTokenizer.findTokenStart(getText(), end);
+
+        Editable editable = getText();
+        QwertyKeyListener.markAsReplaced(editable, start, end, "");
+        CharSequence chip = createChip(entry);
+        if (chip != null && start >= 0 && end >= 0) {
+            editable.replace(start, end, chip);
+        }
+        sanitizeBetween();
+
+        return end - start;
+    }
+
     private RecipientEntry createValidatedEntry(RecipientEntry item) {
         if (item == null) {
             return null;
