@@ -2409,6 +2409,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     @Override
     public void onChipDelete() {
         if (mSelectedChip != null) {
+            if (mRecipientChipDeletedListener != null) {
+                mRecipientChipDeletedListener.onRecipientChipDeleted(mSelectedChip.getEntry());
+            }
             removeChip(mSelectedChip);
         }
         dismissPopups();
