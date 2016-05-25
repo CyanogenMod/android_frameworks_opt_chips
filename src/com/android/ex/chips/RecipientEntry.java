@@ -53,7 +53,7 @@ public class RecipientEntry {
      */
     public static final int ENTRY_TYPE_GROUP = 2;
 
-    public static final int ENTRY_TYPE_SIZE = 2;
+    public static final int ENTRY_TYPE_SIZE = 3;
 
     private final int mEntryType;
 
