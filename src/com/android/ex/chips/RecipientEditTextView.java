@@ -208,6 +208,23 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     private boolean mAttachedToWindow;
 
+    public enum ScreenOrientation {
+        PORTRAIT,
+        LANDSCAPE,
+    }
+
+    private ScreenOrientation mOrientation = ScreenOrientation.PORTRAIT;
+
+    public ScreenOrientation getOrientation() {
+        return mOrientation;
+    }
+
+    public void setOrientation(ScreenOrientation orientation) {
+        mOrientation = orientation;
+    }
+
+    private boolean mAllSelected = false;
+
     private final Runnable mAddTextWatcher = new Runnable() {
         @Override
         public void run() {
@@ -501,6 +518,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         // When selection changes, see if it is inside the chips area.
         // If so, move the cursor back after the chips again.
         // Only exception is when we change the selection due to a selected chip.
+        if (getOrientation() == ScreenOrientation.LANDSCAPE) {
+            if (getText().length() == end - start) {
+                mAllSelected = true;
+            }
+        }
         DrawableRecipientChip last = getLastChip();
         if (mSelectedChip == null && last != null && start < getSpannable().getSpanEnd(last)) {
             // Grab the last chip and set the cursor to after it.
@@ -2691,23 +2713,69 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 // If the item deleted is a space, and the thing before the
                 // space is a chip, delete the entire span.
                 int selStart = getSelectionStart();
-                DrawableRecipientChip[] repl = getSpannable().getSpans(selStart, selStart,
-                        DrawableRecipientChip.class);
-                if (repl.length > 0) {
-                    // There is a chip there! Just remove it.
-                    DrawableRecipientChip toDelete = repl[0];
-                    Editable editable = getText();
-                    // Add the separator token.
-                    int deleteStart = editable.getSpanStart(toDelete);
-                    int deleteEnd = editable.getSpanEnd(toDelete) + 1;
-                    if (deleteEnd > editable.length()) {
-                        deleteEnd = editable.length();
+                if (getOrientation() == ScreenOrientation.PORTRAIT) {
+                    DrawableRecipientChip[] repl = getSpannable().getSpans(selStart, selStart,
+                            DrawableRecipientChip.class);
+                    if (repl.length > 0) {
+                        // There is a chip there! Just remove it.
+                        DrawableRecipientChip toDelete = repl[0];
+                        Editable editable = getText();
+                        // Add the separator token.
+                        int deleteStart = editable.getSpanStart(toDelete);
+                        int deleteEnd = editable.getSpanEnd(toDelete) + 1;
+                        if (deleteEnd > editable.length()) {
+                            deleteEnd = editable.length();
+                        }
+                        if (!mNoChipMode && mRecipientChipDeletedListener != null) {
+                            mRecipientChipDeletedListener
+                                    .onRecipientChipDeleted(toDelete.getEntry());
+                        }
+                        editable.removeSpan(toDelete);
+                        editable.delete(deleteStart, deleteEnd);
                     }
-                    if (!mNoChipMode && mRecipientChipDeletedListener != null) {
-                        mRecipientChipDeletedListener.onRecipientChipDeleted(toDelete.getEntry());
+                } else {
+                    if (mAllSelected) {
+                        DrawableRecipientChip[] repl = getSpannable().getSpans(0,
+                                getText().length(),
+                                DrawableRecipientChip.class);
+                        for (int i = 0; i < repl.length; i++) {
+                            DrawableRecipientChip toDelete = repl[i];
+                            Editable editable = getText();
+                            // Add the separator token.
+                            int deleteStart = editable.getSpanStart(toDelete);
+                            int deleteEnd = editable.getSpanEnd(toDelete) + 1;
+                            if (deleteEnd > editable.length()) {
+                                deleteEnd = editable.length();
+                            }
+                            if (!mNoChipMode && mRecipientChipDeletedListener != null) {
+                                mRecipientChipDeletedListener
+                                        .onRecipientChipDeleted(toDelete.getEntry());
+                            }
+                            editable.removeSpan(toDelete);
+                            editable.delete(deleteStart, deleteEnd);
+                        }
+                        mAllSelected = false;
+                    } else {
+                        DrawableRecipientChip[] repl = getSpannable().getSpans(selStart, selStart,
+                                DrawableRecipientChip.class);
+                        if (repl.length > 0) {
+                            // There is a chip there! Just remove it.
+                            DrawableRecipientChip toDelete = repl[0];
+                            Editable editable = getText();
+                            // Add the separator token.
+                            int deleteStart = editable.getSpanStart(toDelete);
+                            int deleteEnd = editable.getSpanEnd(toDelete) + 1;
+                            if (deleteEnd > editable.length()) {
+                                deleteEnd = editable.length();
+                            }
+                            if (!mNoChipMode && mRecipientChipDeletedListener != null) {
+                                mRecipientChipDeletedListener
+                                        .onRecipientChipDeleted(toDelete.getEntry());
+                            }
+                            editable.removeSpan(toDelete);
+                            editable.delete(deleteStart, deleteEnd);
+                        }
                     }
-                    editable.removeSpan(toDelete);
-                    editable.delete(deleteStart, deleteEnd);
                 }
             } else if (count > before) {
                 if (mSelectedChip != null
