@@ -2307,6 +2307,16 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             editable.append(text);
             mSelectedChip = constructChipSpan(
                     RecipientEntry.constructFakeEntry((String) text, isValid(text.toString())));
+
+            /*
+             * Because chip is destroyed and converted into an editable text, we call
+             * {@link RecipientChipDeletedListener#onRecipientChipDeleted}. For the cases where
+             * editable text is not shown (i.e. chip is in user's contact list), chip is focused
+             * and below callback is not called.
+             */
+            if (mRecipientChipDeletedListener != null) {
+                mRecipientChipDeletedListener.onRecipientChipDeleted(currentChip.getEntry());
+            }
         } else {
             final boolean showAddress =
                     currentChip.getContactId() == RecipientEntry.GENERATED_CONTACT ||
