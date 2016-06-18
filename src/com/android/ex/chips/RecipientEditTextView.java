@@ -103,8 +103,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * RecipientEditTextView is an auto complete text view for use with applications
@@ -187,7 +185,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
     private int mPendingChipsCount = 0;
     private int mCheckedItem;
-    private boolean mNoChips = false;
+    private boolean mNoChipMode = false;
     private boolean mShouldShrink = true;
     private boolean mRequiresShrinkWhenNotGone = false;
 
@@ -1116,6 +1114,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         return mChipHeight;
     }
 
+    /** Returns whether view is in no-chip or chip mode. */
+    public boolean isNoChipMode() {
+        return mNoChipMode;
+    }
+
     /**
      * Set whether to shrink the recipients field such that at most
      * one line of recipients chips are shown when the field loses
@@ -1206,7 +1209,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 }
                 sanitizeEnd();
             } else {
-                mNoChips = true;
+                mNoChipMode = true;
             }
 
             if (mTemporaryRecipients != null && mTemporaryRecipients.size() > 0
@@ -1299,7 +1302,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         if (entry != null) {
             DrawableRecipientChip chip = null;
             try {
-                if (!mNoChips) {
+                if (!mNoChipMode) {
                     chip = visible ? constructChipSpan(entry) : new InvisibleRecipientChip(entry);
                 }
             } catch (NullPointerException e) {
@@ -1596,11 +1599,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     }
 
     private boolean shouldCreateChip(int start, int end) {
-        return !mNoChips && hasFocus() && enoughToFilter() && !alreadyHasChip(start, end);
+        return !mNoChipMode && hasFocus() && enoughToFilter() && !alreadyHasChip(start, end);
     }
 
     private boolean alreadyHasChip(int start, int end) {
-        if (mNoChips) {
+        if (mNoChipMode) {
             return true;
         }
         DrawableRecipientChip[] chips =
@@ -1970,7 +1973,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         // Always leave a blank space at the end of a chip.
         final int textLength = displayText.length() - 1;
         final SpannableString  chipText = new SpannableString(displayText);
-        if (!mNoChips) {
+        if (!mNoChipMode) {
             try {
                 DrawableRecipientChip chip = constructChipSpan(entry);
                 chipText.setSpan(chip, 0, textLength,
@@ -1990,7 +1993,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      * given RecipientEntry.
      */
     protected void onChipCreated(RecipientEntry entry) {
-        if (mRecipientChipAddedListener != null) {
+        if (!mNoChipMode && mRecipientChipAddedListener != null) {
             mRecipientChipAddedListener.onRecipientChipAdded(entry);
         }
     }
@@ -2181,7 +2184,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
      */
     // Visible for testing.
     /* package */ void createMoreChip() {
-        if (mNoChips) {
+        if (mNoChipMode) {
             createMoreChipPlainText();
             return;
         }
@@ -2316,14 +2319,14 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
              * editable text is not shown (i.e. chip is in user's contact list), chip is focused
              * and below callback is not called.
              */
-            if (mRecipientChipDeletedListener != null) {
+            if (!mNoChipMode && mRecipientChipDeletedListener != null) {
                 mRecipientChipDeletedListener.onRecipientChipDeleted(currentChip.getEntry());
             }
         } else {
             final boolean showAddress =
                     currentChip.getContactId() == RecipientEntry.GENERATED_CONTACT ||
                     getAdapter().forceShowAddress();
-            if (showAddress && mNoChips) {
+            if (showAddress && mNoChipMode) {
                 return;
             }
 
@@ -2403,7 +2406,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             QwertyKeyListener.markAsReplaced(editable, start, end, "");
             editable.removeSpan(chip);
             try {
-                if (!mNoChips) {
+                if (!mNoChipMode) {
                     editable.setSpan(constructChipSpan(chip.getEntry()),
                             start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 }
@@ -2419,7 +2422,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     @Override
     public void onChipDelete() {
         if (mSelectedChip != null) {
-            if (mRecipientChipDeletedListener != null) {
+            if (!mNoChipMode && mRecipientChipDeletedListener != null) {
                 mRecipientChipDeletedListener.onRecipientChipDeleted(mSelectedChip.getEntry());
             }
             removeChip(mSelectedChip);
@@ -2625,7 +2628,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                     if (deleteEnd > editable.length()) {
                         deleteEnd = editable.length();
                     }
-                    if (mRecipientChipDeletedListener != null) {
+                    if (!mNoChipMode && mRecipientChipDeletedListener != null) {
                         mRecipientChipDeletedListener.onRecipientChipDeleted(toDelete.getEntry());
                     }
                     editable.removeSpan(toDelete);
@@ -2806,7 +2809,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private class RecipientReplacementTask extends AsyncTask<Void, Void, Void> {
         private DrawableRecipientChip createFreeChip(RecipientEntry entry) {
             try {
-                if (mNoChips) {
+                if (mNoChipMode) {
                     return null;
                 }
                 return constructChipSpan(entry);
