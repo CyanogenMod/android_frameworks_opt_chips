@@ -192,7 +192,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     // VisibleForTesting
     ArrayList<DrawableRecipientChip> mTemporaryRecipients;
 
-    private ArrayList<DrawableRecipientChip> mRemovedSpans;
+    private ArrayList<DrawableRecipientChip> mHiddenSpans;
 
     // Chip copy fields.
     private GestureDetector mGestureDetector;
@@ -472,6 +472,22 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
 
         for (DrawableRecipientChip c : chips) {
             results.add(c.getEntry());
+        }
+
+        return results;
+    }
+
+    /**
+     * @return The list of {@link RecipientEntry}s that have been selected by the user and also
+     *         hidden due to {@link #mMoreChip} span.
+     */
+    public List<RecipientEntry> getAllRecipients() {
+        List<RecipientEntry> results = getSelectedRecipients();
+
+        if (mHiddenSpans != null) {
+            for (DrawableRecipientChip chip : mHiddenSpans) {
+                results.add(chip.getEntry());
+            }
         }
 
         return results;
@@ -2205,12 +2221,12 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         int numRecipients = recipients.length;
         int overage = numRecipients - CHIP_LIMIT;
         MoreImageSpan moreSpan = createMoreSpan(overage);
-        mRemovedSpans = new ArrayList<DrawableRecipientChip>();
+        mHiddenSpans = new ArrayList<DrawableRecipientChip>();
         int totalReplaceStart = 0;
         int totalReplaceEnd = 0;
         Editable text = getText();
         for (int i = numRecipients - overage; i < recipients.length; i++) {
-            mRemovedSpans.add(recipients[i]);
+            mHiddenSpans.add(recipients[i]);
             if (i == numRecipients - overage) {
                 totalReplaceStart = spannable.getSpanStart(recipients[i]);
             }
@@ -2249,9 +2265,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
             Spannable span = getSpannable();
             span.removeSpan(mMoreChip);
             mMoreChip = null;
-            // Re-add the spans that were removed.
-            if (mRemovedSpans != null && mRemovedSpans.size() > 0) {
-                // Recreate each removed span.
+            // Re-add the spans that were hidden.
+            if (mHiddenSpans != null && mHiddenSpans.size() > 0) {
+                // Recreate each hidden span.
                 DrawableRecipientChip[] recipients = getSortedRecipients();
                 // Start the search for tokens after the last currently visible
                 // chip.
@@ -2260,13 +2276,13 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 }
                 int end = span.getSpanEnd(recipients[recipients.length - 1]);
                 Editable editable = getText();
-                for (DrawableRecipientChip chip : mRemovedSpans) {
+                for (DrawableRecipientChip chip : mHiddenSpans) {
                     int chipStart;
                     int chipEnd;
                     String token;
                     // Need to find the location of the chip, again.
                     token = (String) chip.getOriginalText();
-                    // As we find the matching recipient for the remove spans,
+                    // As we find the matching recipient for the hidden spans,
                     // reduce the size of the string we need to search.
                     // That way, if there are duplicates, we always find the correct
                     // recipient.
@@ -2278,7 +2294,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                     }
                 }
-                mRemovedSpans.clear();
+                mHiddenSpans.clear();
             }
         }
     }
@@ -2527,7 +2543,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     }
 
     private boolean chipsPending() {
-        return mPendingChipsCount > 0 || (mRemovedSpans != null && mRemovedSpans.size() > 0);
+        return mPendingChipsCount > 0 || (mHiddenSpans != null && mHiddenSpans.size() > 0);
     }
 
     @Override
@@ -2828,8 +2844,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                     new ArrayList<DrawableRecipientChip>();
             final DrawableRecipientChip[] existingChips = getSortedRecipients();
             Collections.addAll(originalRecipients, existingChips);
-            if (mRemovedSpans != null) {
-                originalRecipients.addAll(mRemovedSpans);
+            if (mHiddenSpans != null) {
+                originalRecipients.addAll(mHiddenSpans);
             }
 
             final List<DrawableRecipientChip> replacements =
@@ -2859,8 +2875,8 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                     new ArrayList<DrawableRecipientChip>();
             DrawableRecipientChip[] existingChips = getSortedRecipients();
             Collections.addAll(recipients, existingChips);
-            if (mRemovedSpans != null) {
-                recipients.addAll(mRemovedSpans);
+            if (mHiddenSpans != null) {
+                recipients.addAll(mHiddenSpans);
             }
             ArrayList<String> addresses = new ArrayList<String>();
             for (DrawableRecipientChip chip : recipients) {
