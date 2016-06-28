@@ -610,7 +610,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
                 } else {
                     // Set the dropdown height to be the remaining height from the anchor to the
                     // bottom.
-                    mDropdownAnchor.getLocationInWindow(mCoords);
+                    mDropdownAnchor.getLocationOnScreen(mCoords);
                     getWindowVisibleDisplayFrame(mRect);
                     setDropDownHeight(mRect.bottom - mCoords[1] - mDropdownAnchor.getHeight() -
                             getDropDownVerticalOffset());
