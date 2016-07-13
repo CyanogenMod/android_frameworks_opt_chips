@@ -2058,6 +2058,11 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         }
         sanitizeBetween();
 
+        // Clear all the suggestions once an item is submitted.
+        if (getAdapter().getEntries() != null) {
+            getAdapter().getEntries().clear();
+        }
+
         return end - start;
     }
 
