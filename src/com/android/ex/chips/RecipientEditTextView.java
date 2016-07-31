@@ -796,8 +796,9 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         // on the sides.
         int height = (int) mChipHeight;
         // Since the icon is a square, it's width is equal to the maximum height it can be inside
-        // the chip. Don't include iconWidth for invalid contacts.
-        int iconWidth = contact.isValid() ?
+        // the chip. Don't include iconWidth for invalid contacts and when not displaying photos.
+        boolean displayIcon = contact.isValid() && contact.shouldDisplayIcon();
+        int iconWidth = displayIcon ?
                 height - backgroundPadding.top - backgroundPadding.bottom : 0;
         float[] widths = new float[1];
         paint.getTextWidths(" ", widths);
@@ -807,7 +808,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         int textWidth = (int) paint.measureText(ellipsizedText, 0, ellipsizedText.length());
 
         // Chip start padding is the same as the end padding if there is no contact image.
-        final int startPadding = contact.isValid() ? mChipTextStartPadding : mChipTextEndPadding;
+        final int startPadding = displayIcon ? mChipTextStartPadding : mChipTextEndPadding;
         // Make sure there is a minimum chip width so the user can ALWAYS
         // tap a chip without difficulty.
         int width = Math.max(iconWidth * 2, textWidth + startPadding + mChipTextEndPadding
@@ -855,6 +856,7 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
         result.top = backgroundPadding.top;
         result.right = iconX + iconWidth;
         result.bottom = height - backgroundPadding.bottom;
+        result.loadIcon = displayIcon;
 
         return result;
     }
