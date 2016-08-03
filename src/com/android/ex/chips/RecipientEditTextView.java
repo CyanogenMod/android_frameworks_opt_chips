@@ -1520,18 +1520,17 @@ public class RecipientEditTextView extends MultiAutoCompleteTextView implements
     private boolean commitChip(int start, int end, Editable editable) {
         int position = positionOfFirstEntryWithTypePerson();
         if (position != -1 && enoughToFilter()
-            && end == getSelectionEnd() && !isPhoneQuery()) {
+                && end == getSelectionEnd() && !isPhoneQuery()
+                && !isValidEmailAddress(editable.toString().substring(start, end).trim())) {
             // let's choose the selected or first entry if only the input text is NOT an email
             // address so we won't try to replace the user's potentially correct but
             // new/unencountered email input
-            if (!isValidEmailAddress(editable.toString().substring(start, end).trim())) {
-                final int selectedPosition = getListSelection();
-                if (selectedPosition == -1 || !isEntryAtPositionTypePerson(selectedPosition)) {
-                    // Nothing is selected or selected item is not type person; use the first item
-                    submitItemAtPosition(position);
-                } else {
-                    submitItemAtPosition(selectedPosition);
-                }
+            final int selectedPosition = getListSelection();
+            if (selectedPosition == -1 || !isEntryAtPositionTypePerson(selectedPosition)) {
+                // Nothing is selected or selected item is not type person; use the first item
+                submitItemAtPosition(position);
+            } else {
+                submitItemAtPosition(selectedPosition);
             }
             dismissDropDown();
             return true;
