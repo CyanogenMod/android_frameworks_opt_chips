@@ -81,6 +81,8 @@ public class RecipientEntry {
     private final long mDataId;
 
     private final Uri mPhotoThumbnailUri;
+    /** Configures showing the icon in the chip */
+    private final boolean mShouldDisplayIcon;
 
     private boolean mIsValid;
     /**
@@ -99,9 +101,18 @@ public class RecipientEntry {
     private final String[] mPermissions;
 
     protected RecipientEntry(int entryType, String displayName, String destination,
+        int destinationType, String destinationLabel, long contactId, Long directoryId,
+        long dataId, Uri photoThumbnailUri, boolean isFirstLevel, boolean isValid,
+        String lookupKey, String[] permissions) {
+        this(entryType, displayName, destination, destinationType,
+            destinationLabel, contactId, directoryId, dataId, photoThumbnailUri,
+            true /* shouldDisplayIcon */, isFirstLevel, isValid, lookupKey, permissions);
+    }
+
+    protected RecipientEntry(int entryType, String displayName, String destination,
             int destinationType, String destinationLabel, long contactId, Long directoryId,
-            long dataId, Uri photoThumbnailUri, boolean isFirstLevel, boolean isValid,
-            String lookupKey, String[] permissions) {
+            long dataId, Uri photoThumbnailUri, boolean shouldDisplayIcon,
+            boolean isFirstLevel, boolean isValid, String lookupKey, String[] permissions) {
         mEntryType = entryType;
         mIsFirstLevel = isFirstLevel;
         mDisplayName = displayName;
@@ -112,6 +123,7 @@ public class RecipientEntry {
         mDirectoryId = directoryId;
         mDataId = dataId;
         mPhotoThumbnailUri = photoThumbnailUri;
+        mShouldDisplayIcon = shouldDisplayIcon;
         mPhotoBytes = null;
         mIsValid = isValid;
         mLookupKey = lookupKey;
@@ -288,6 +300,11 @@ public class RecipientEntry {
 
     public Uri getPhotoThumbnailUri() {
         return mPhotoThumbnailUri;
+    }
+
+    /** Indicates whether the icon in the chip is displayed or not. */
+    public boolean shouldDisplayIcon() {
+        return mShouldDisplayIcon;
     }
 
     /** This can be called outside main Looper thread. */
